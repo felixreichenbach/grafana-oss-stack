@@ -1,6 +1,6 @@
 # grafana-oss-stack
 
-A basic Docker Compose setup running Grafana OSS and Loki.
+A basic Docker Compose setup running Grafana OSS, Loki, and Alloy.
 
 ## Services
 
@@ -8,6 +8,7 @@ A basic Docker Compose setup running Grafana OSS and Loki.
 |---------|-------|------|
 | Grafana | grafana/grafana-oss:latest | 3000 |
 | Loki | grafana/loki:latest | 3100 |
+| Alloy | grafana/alloy:latest | 12345 |
 
 ## Requirements
 
@@ -36,6 +37,14 @@ Default credentials:
 2. Click **Add data source** and select **Loki**.
 3. Set the URL to `http://loki:3100`.
 4. Click **Save & test**.
+
+## Alloy
+
+Alloy is included as a blank starter and loads its configuration from `./config.alloy`.
+
+The default config only sets Alloy logging, so you can add your own pipelines and destinations.
+
+Open [http://localhost:12345](http://localhost:12345) to access the Alloy UI.
 
 ### Stop the stack
 
