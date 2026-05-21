@@ -1,0 +1,26 @@
+// Listen for syslog messages on TCP port 1514 (octet-counted)
+loki.source.syslog "meraki" {
+  listener {
+    address  = "0.0.0.0:1514"
+    protocol = "tcp"
+    labels   = { job = "meraki-syslog", forwarding_format = "rfc5424" }
+  }
+  forward_to = [loki.write.local_loki.receiver]
+}
+
+// Optional direct UDP syslog intake on port 1514 (no relay required)
+loki.source.syslog "meraki_udp" {
+  listener {
+    address  = "0.0.0.0:1514"
+    protocol = "udp"
+    labels   = { job = "meraki-syslog", forwarding_format = "rfc5424", transport = "udp" }
+  }
+  forward_to = [loki.write.local_loki.receiver]
+}
+
+// Send the logs to your Loki container
+loki.write "local_loki" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
