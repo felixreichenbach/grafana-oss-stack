@@ -101,6 +101,46 @@ curl -sG 'http://localhost:3100/loki/api/v1/query_range' \
 
 Note: stream selectors must use `query_range`; instant `/query` is for metric queries.
 
+## Meraki Syslog Simulator
+
+Generate a burst of Meraki-like syslog events (flows, ids, dhcp, vpn) with one marker.
+Default output format is RFC3164 (closer to common Meraki syslog style).
+
+```sh
+./scripts/meraki-syslog-sim.sh --count 20 --run-id demo-meraki-001
+```
+
+Defaults:
+
+- Destination: `127.0.0.1:1514`
+- Protocol: `udp`
+- Format: `rfc3164`
+- Events: `12`
+
+For Meraki-like RFC3164 testing in this stack, prefer the relay path on UDP `514`:
+
+```sh
+./scripts/meraki-syslog-sim.sh --port 514 --proto udp --format rfc3164 --run-id demo-meraki-3164
+```
+
+Query your run marker in Explore:
+
+```logql
+{job="meraki-syslog"} |= "demo-meraki-001"
+```
+
+Use relay path instead (rsyslog on UDP 514):
+
+```sh
+./scripts/meraki-syslog-sim.sh --port 514 --proto udp --run-id demo-relay-001
+```
+
+Force RFC5424 output (for parser compatibility checks):
+
+```sh
+./scripts/meraki-syslog-sim.sh --format rfc5424 --run-id demo-rfc5424-001
+```
+
 ### Stop the stack
 
 ```sh
@@ -113,21 +153,4 @@ docker compose down
 docker compose down -v
 ```
 
-## Loki
 
-Push log entry:
-
-```sh
-curl -X POST http://localhost:3100/loki/api/v1/push \                                          
-  -H "Content-Type: application/json" \
-  -d '{
-    "streams": [
-      {
-        "stream": { "job": "test", "env": "dev" },
-        "values": [
-          ["'"$(date +%s%N)"'", "hello from curl"]
-        ]
-      }
-    ]
-  }'
-```
