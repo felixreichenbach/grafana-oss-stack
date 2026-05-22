@@ -1,6 +1,3 @@
-include:
-  - ./syslog/syslog.yml
-
 services:
   grafana:
     image: grafana/grafana-oss:latest
@@ -25,16 +22,18 @@ services:
       - loki-data:/loki
 
   alloy:
-      image: grafana/alloy:latest
-      container_name: alloy
-      ports:
-        - "1514:1514/tcp" # Opens TCP 1514 to the host/other containers
-        - "1514:1514/udp" # Opens UDP 1514 for direct syslog ingestion
-      volumes:
-        - ./config.alloy:/etc/alloy/config.alloy:ro
-      command: run --storage.path=/tmp/alloy-data /etc/alloy/config.alloy
-      depends_on:
-        - loki
+    image: grafana/alloy:latest
+    container_name: alloy
+    ports:
+      - "12345:12345"
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --server.http.listen-addr=0.0.0.0:12345
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy:ro
+    depends_on:
+      - loki
 
 volumes:
   grafana-data:
