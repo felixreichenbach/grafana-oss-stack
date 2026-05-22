@@ -1,3 +1,6 @@
+include:
+  - ./syslog/syslog.yml
+
 services:
   grafana:
     image: grafana/grafana-oss:latest
@@ -32,15 +35,6 @@ services:
       command: run --storage.path=/tmp/alloy-data /etc/alloy/config.alloy
       depends_on:
         - loki
-  ubuntu-syslog:
-      image: rsyslog/rsyslog:latest
-      container_name: ubuntu-syslog
-      ports:
-        - "514:514/udp"
-      volumes:
-        - ./rsyslog.conf:/etc/rsyslog.conf:ro
-      depends_on:
-        - alloy
 
 volumes:
   grafana-data:
