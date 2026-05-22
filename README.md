@@ -1,6 +1,6 @@
 # grafana-oss-stack
 
-A Docker Compose setup running Grafana OSS, Loki, Alloy, and rsyslog for syslog ingestion.
+A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additional features such as syslog etc.
 
 ## Services
 
