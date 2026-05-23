@@ -1,5 +1,6 @@
 include:
-  - ./syslog/syslog.yml
+# - ./syslog/syslog.yml
+  - ./openclaw/openclaw.yml
 
 services:
   grafana:

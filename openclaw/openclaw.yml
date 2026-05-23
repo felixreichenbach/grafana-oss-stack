@@ -1,0 +1,41 @@
+services:
+  openclaw:
+    image: "alpine/openclaw:latest"
+    container_name: openclaw
+    command:
+      - openclaw
+      - gateway
+      - run
+      - --allow-unconfigured
+      - --auth
+      - token
+      - --port
+      - "8080"
+      - --bind
+      - "lan"
+    environment:
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN:-local-dev-token}
+      - OPENCLAW_CONTROL_UI_ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080,http://openclaw:8080,http://openclaw-mcp-bridge:3000
+      - NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
+      - OPENCLAW_NO_RESPAWN=1
+    volumes:
+      # We map a local folder to hold your settings and openclaw.json
+      - ./openclaw-config:/root/.openclaw
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  openclaw-mcp-bridge:
+    image: ghcr.io/freema/openclaw-mcp:latest
+    container_name: openclaw-mcp-bridge
+    ports:
+      - "3001:3000"
+    environment:
+      - OPENCLAW_URL=http://openclaw:8080
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN:-local-dev-token}
+      - OPENCLAW_GATEWAY_DANGEROUSLY_DISABLE_DEVICE_AUTH=true
+      - AUTH_ENABLED=false 
+      - CORS_ORIGINS=*
+    depends_on:
+      - openclaw
+    restart: unless-stopped
