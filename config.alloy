@@ -3,7 +3,7 @@ loki.source.syslog "meraki" {
   listener {
     address  = "0.0.0.0:1514"
     protocol = "tcp"
-    labels   = { job = "meraki-syslog", forwarding_format = "rfc5424" }
+    labels   = { job = "meraki-syslog", transport = "tcp" }
   }
   forward_to = [loki.write.local_loki.receiver]
 }
@@ -13,7 +13,7 @@ loki.source.syslog "meraki_udp" {
   listener {
     address  = "0.0.0.0:1514"
     protocol = "udp"
-    labels   = { job = "meraki-syslog", forwarding_format = "rfc5424", transport = "udp" }
+    labels   = { job = "meraki-syslog", transport = "udp" }
   }
   forward_to = [loki.write.local_loki.receiver]
 }
