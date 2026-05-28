@@ -3,8 +3,9 @@ services:
     image: rsyslog/rsyslog:latest
     container_name: syslog
     ports:
-      - "514:514/udp"
+      - "514:514"
     volumes:
       - ./rsyslog.conf:/etc/rsyslog.conf:ro
+      - ./log/container-logs:/var/log
     depends_on:
       - alloy
