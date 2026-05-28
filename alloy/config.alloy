@@ -3,8 +3,6 @@ loki.source.syslog "meraki" {
   listener {
     address  = "0.0.0.0:1514"
     protocol = "tcp"
-
-    labels   = { job = "meraki-syslog", transport = "tcp" }
   }
   relabel_rules = loki.relabel.syslog_fields.rules
   forward_to = [loki.write.local_loki.receiver]
@@ -15,7 +13,6 @@ loki.source.syslog "meraki_udp" {
   listener {
     address  = "0.0.0.0:1514"
     protocol = "udp"
-    labels   = { job = "meraki-syslog", transport = "udp" }
   }
   relabel_rules = loki.relabel.syslog_fields.rules
   forward_to = [loki.write.local_loki.receiver]
@@ -23,27 +20,19 @@ loki.source.syslog "meraki_udp" {
 
 loki.relabel "syslog_fields" {
 	rule {
-		source_labels = ["__syslog_connection_ip_address"]
-		target_label  = "source_ip"
+		source_labels = ["__syslog_message_severity"]
+		target_label  = "level"
 	}
-
-	rule {
-		source_labels = ["__syslog_message_hostname"]
-		target_label  = "hostname"
-	}
-
 	rule {
 		source_labels = ["__syslog_message_hostname"]
 		regex         = "^([^_]+)_.*$"
 		replacement   = "$1"
 		target_label  = "instance"
 	}
-
 	rule {
-		source_labels = ["__syslog_message_severity"]
-		target_label  = "level"
+		source_labels = ["__syslog_message_app_name"]
+		target_label  = "syslog_app_name"
 	}
-
 	forward_to = []
 }
 

@@ -1,6 +1,7 @@
 include:
-   - ./syslog/syslog.yml
-#  - ./openclaw/openclaw.yml
+  - ./alloy/alloy.yml
+  - ./syslog/syslog.yml
+# - ./openclaw/openclaw.yml
 
 services:
   grafana:
@@ -25,17 +26,12 @@ services:
     volumes:
       - loki-data:/loki
 
-  alloy:
-      image: grafana/alloy:latest
-      container_name: alloy
-      ports:
-        - "1514:1514/tcp" # Opens TCP 1514 to the host/other containers
-        - "1514:1514/udp" # Opens UDP 1514 for direct syslog ingestion
-      volumes:
-        - ./config.alloy:/etc/alloy/config.alloy:ro
-      command: run --stability.level=experimental --storage.path=/tmp/alloy-data /etc/alloy/config.alloy
-      depends_on:
-        - loki
+  alertmanager:
+    image: quay.io/prometheus/alertmanager
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    restart: unless-stopped
 
 volumes:
   grafana-data:
