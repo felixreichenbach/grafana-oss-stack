@@ -42,3 +42,24 @@ loki.write "local_loki" {
     url = "http://loki:3100/loki/api/v1/push"
   }
 }
+
+// Receive OTLP traces (e.g., from Tempo self-telemetry) and forward them to Tempo.
+otelcol.receiver.otlp "tempo_ingest" {
+	grpc {
+		endpoint = "0.0.0.0:4317"
+	}
+
+	http {
+		endpoint = "0.0.0.0:4318"
+	}
+
+	output {
+		traces = [otelcol.exporter.otlphttp.to_tempo.input]
+	}
+}
+
+otelcol.exporter.otlphttp "to_tempo" {
+	client {
+		endpoint = "http://tempo:4318"
+	}
+}
