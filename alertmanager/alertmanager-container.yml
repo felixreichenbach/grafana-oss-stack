@@ -1,7 +1,0 @@
-services:
-  alert-manager:
-    image: quay.io/prometheus/alertmanager
-    container_name: alert-manager
-    ports:
-      - "9093:9093"
-    restart: unless-stopped

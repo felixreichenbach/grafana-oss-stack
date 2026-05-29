@@ -1,7 +1,6 @@
 include:
   - ./alloy/alloy-container.yml
   - ./syslog/syslog-container.yml
-  - ./alertmanager/alertmanager-container.yml
   - ./tempo/tempo-container.yml
   - ./loki/loki-container.yml
 # - ./openclaw/openclaw.yml
