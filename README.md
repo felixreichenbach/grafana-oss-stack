@@ -10,6 +10,7 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 | Loki | grafana/loki:latest | 3100 |
 | Alloy | grafana/alloy:latest | 1514/tcp, 1514/udp |
 | rsyslog relay | rsyslog/rsyslog:latest | 514/udp |
+| Static website | nginx:alpine | 8088 |
 
 ## Requirements
 
@@ -27,6 +28,10 @@ docker compose up -d
 ### Access Grafana
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Access Static Website
+
+Open [http://localhost:8088](http://localhost:8088) in your browser.
 
 Default credentials:
 - **Username:** `admin`

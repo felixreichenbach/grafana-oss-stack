@@ -3,6 +3,7 @@ include:
   - ./syslog/syslog-container.yml
   - ./tempo/tempo-container.yml
   - ./loki/loki-container.yml
+  - ./static-site/static-site-container.yml
 # - ./openclaw/openclaw.yml
 
 services:
@@ -14,6 +15,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ALLOW_EMBEDDING=true
     volumes:
       - grafana-data:/var/lib/grafana
 
