@@ -9,8 +9,8 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 | Grafana | grafana/grafana-oss:latest | 3000 |
 | Loki | grafana/loki:latest | 3100 |
 | Alloy | grafana/alloy:latest | 1514/tcp, 1514/udp |
-| rsyslog relay | rsyslog/rsyslog:latest | 514/udp |
-| Telegraf SNMP traps | telegraf:latest | 162/udp |
+| Rsyslog | rsyslog/rsyslog:latest | 514/udp |
+| Telegraf | telegraf:latest | 162/udp |
 | Static website | nginx:alpine | 8088 |
 
 ## Requirements
