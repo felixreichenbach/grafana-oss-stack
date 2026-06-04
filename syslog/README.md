@@ -1,121 +1,103 @@
-# Meraki Syslog Workaround
+# Rsyslog - Syslog Preprocessing
 
-Debug line with all properties:
-FROMHOST: 'brbsgawap201.barry-callebaut.com', fromhost-ip: '10.157.7.201', HOSTNAME: 'brbsgawap201.barry-callebaut.com', PRI: 134,
-syslogtag '', programname: '', APP-NAME: '', PROCID: '-', MSGID: '-',
-TIMESTAMP: 'May 26 10:00:58', STRUCTURED-DATA: '-',
-msg: '1779789658.526524123 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.122:52087 dst=40.99.204.178:443 mac=58:6D:67:D7:0F:28 request: UNKNOWN https://outlook.office365.com/...'
-escaped msg: '1779789658.526524123 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.122:52087 dst=40.99.204.178:443 mac=58:6D:67:D7:0F:28 request: UNKNOWN https://outlook.office365.com/...'
-inputname: imudp rawmsg: '<134>1 1779789658.526524123 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.122:52087 dst=40.99.204.178:443 mac=58:6D:67:D7:0F:28 request: UNKNOWN https://outlook.office365.com/...'
-$!:
-$.:
-$/:
+Grafana Alloy provides a Syslog receiver which expects syslog messages to meet either RFC3164 or RFC5424 (newer) standards. A lot of devices, in particular networking devices do not meet these specifications and therefore it might be necessary to use Rsyslog as a preprocesser.
+
+## Meraki Timestamp Workaround
+
+While Meraki devices can forward Syslog messages, they use Epoch for their timestamps which is not inline with the standard and Alloy will drop these messages.
+To fix this, Rsyslog will take the message and update / reformat the Syslog header to meet the official standard.
+
+See [`rsyslog.conf`](./rsyslog.conf) for the configuration.
+
+Also have a look at the [`config.alloy`](../alloy/config.alloy) syslog section.
 
 
-FROMHOST: 'brbsgawap201.barry-callebaut.com', fromhost-ip: '10.157.7.201', HOSTNAME: 'brbsgawap201.barry-callebaut.com', PRI: 134,
-syslogtag '', programname: '', APP-NAME: '', PROCID: '-', MSGID: '-',
-TIMESTAMP: 'May 26 10:36:04', STRUCTURED-DATA: '-',
-msg: '1779791764.872052699 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.124:53613 dst=63.140.39.244:443 mac=C4:47:4E:37:A3:61 request: UNKNOWN https://sstats.adobe.com/...'
-escaped msg: '1779791764.872052699 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.124:53613 dst=63.140.39.244:443 mac=C4:47:4E:37:A3:61 request: UNKNOWN https://sstats.adobe.com/...'
-inputname: imudp rawmsg: '<134>1 1779791764.872052699 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.124:53613 dst=63.140.39.244:443 mac=C4:47:4E:37:A3:61 request: UNKNOWN https://sstats.adobe.com/...'
-$!:
-$.:
-$/:
+### Sample Meraki Syslog Messages
 
-rawmsgs:
+You can send these raw Meraki Syslog messages via command line:
 
-<134>1 1779791764.872052699 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.124:53613 dst=63.140.39.244:443 mac=C4:47:4E:37:A3:61 request: UNKNOWN https://sstats.adobe.com/...
-
-<134>1 1779357454.275254117 BEWILBCSW001_2_Basement_ events Port bounce requested: Ports 12 will be switched off for 5 seconds
+```shell
+echo -n '<134>1 1779791764.872052699 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.124:53613 dst=63.140.39.244:443 mac=C4:47:4E:37:A3:61 request: UNKNOWN https://sstats.adobe.com/...' | nc -u -w 1 syslog 514
 
 echo -n '<134>1 1779357454.275254117 BEWILBCSW001_2_Basement_ events Port bounce requested: Ports 12 will be switched off for 5 seconds' | nc -u -w 1 syslog 514
+```
 
-echo -n '<134>1 1779791764.872052699 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.124:53613 dst=63.140.39.244:443 mac=C4:47:4E:37:A3:61 request: UNKNOWN https://sstats.adobe.com/... felix3' | nc -u -w 1 syslog 514
+### Meraki Syslog Simulator (TO BE VERIFIED)
 
-1779791764.872052699 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.124:53613 dst=63.140.39.24#012#0124:443 mac=C4:47:4E:37:A3:61 request: UNKNOWN https://sstats.adobe.com/... felix3
+Generate a burst of Meraki-like syslog events (flows, ids, dhcp, vpn) with one marker.
+Default output format is RFC3164 (closer to common Meraki syslog style).
 
+```sh
+./scripts/meraki-syslog-sim.sh --count 20 --run-id demo-meraki-001
+```
 
+Defaults:
 
-MERAKI CONF BACKUP
+- Destination: `127.0.0.1:1514`
+- Protocol: `udp`
+- Format: `rfc3164`
+- Events: `12`
 
+For Meraki-like RFC3164 testing in this stack, prefer the relay path on UDP `514`:
 
-module(load="imudp")
- 
-template(name="MerakiFwd" type="string"
+```sh
+./scripts/meraki-syslog-sim.sh --port 514 --proto udp --format rfc3164 --run-id demo-meraki-3164
+```
 
-  string="<%PRI%>1 %timereported:::date-rfc3339% %fromhost-ip% meraki - - - %rawmsg%\n")
- 
-template(name="ForwardWithSourceIP" type="string"
+Query your run marker in Explore:
 
-  string="<%PRI%>1 %TIMESTAMP:::date-rfc3339% %HOSTNAME% %APP-NAME% %PROCID% %MSGID% [origin ip=\"%fromhost-ip%\"] %msg%\n"
+```logql
+{job="meraki-syslog"} |= "demo-meraki-001"
+```
 
-)
- 
-ruleset(name="forwardToAlloy") {
+Use relay path instead (rsyslog on UDP 514):
 
-  *.* /var/log/syslog-raw;RSYSLOG_DebugFormat
+```sh
+./scripts/meraki-syslog-sim.sh --port 514 --proto udp --run-id demo-relay-001
+```
 
-  action(
+Force RFC5424 output (for parser compatibility checks):
 
-    type="omfwd"
-
-    protocol="tcp"
-
-    target="127.0.0.1"
-
-    port="1514"
-
-   # template="ForwardWithSourceIP"
-
-    TCP_Framing="octet-counted"
-
-    KeepAlive="on"
-
-  )
-
-  stop
-
-}
- 
-input(type="imudp" port="10514" ruleset="forwardToAlloy")
- 
- 
-
-module(load="imudp")
-
-# A completely transparent template that bypasses strict RFC 5424 header generation
-template(name="ForwardToAlloyRaw" type="string"
-  string="%rawmsg% origin_ip=\"%fromhost-ip%\"\n"
-)
-
-ruleset(name="forwardToAlloy") {
-  action(
-    type="omfwd"
-    protocol="tcp"
-    target="127.0.0.1"
-    port="1514"
-    template="ForwardToAlloyRaw"
-    TCP_Framing="line-oriented" # Changed from octet-counted to standard line breaks
-    KeepAlive="on"
-  )
-  stop
-}
-
-input(type="imudp" port="10514" ruleset="forwardToAlloy")
+```sh
+./scripts/meraki-syslog-sim.sh --format rfc5424 --run-id demo-rfc5424-001
+```
 
 
+## Quick Local Syslog Tests (TO BE VERIFIED)
 
+Send a UDP syslog message directly to Alloy (UDP 1514):
 
-Terminology
+```sh
+printf '<165>1 2026-05-21T09:30:00Z host udpapp 1234 - - readme-udp-test\n' | nc -u -w 1 127.0.0.1 1514
+```
 
-BRBSGAWAP201_Farme_Service_
+Send a UDP syslog message to rsyslog relay (UDP 514):
 
+```sh
+printf '<134>May 21 09:25:00 host1 relayapp: readme-relay-test\n' | nc -u -w 1 127.0.0.1 514
+```
 
-BR Brasil
-BS Buying Station / region specific term
-GA Gandu Site Name
-WAP Wireless Access Point / Device Type
-201 Device number
+Check with Loki HTTP API (range query):
 
-_Farme_Service_ unknown
+```sh
+END=$(date +%s%N)
+START=$((END-600000000000))
+curl -sG 'http://localhost:3100/loki/api/v1/query_range' \
+  --data-urlencode 'query={job="meraki-syslog"}' \
+  --data-urlencode "start=$START" \
+  --data-urlencode "end=$END" \
+  --data-urlencode 'limit=20'
+```
+
+Note: stream selectors must use `query_range`; instant `/query` is for metric queries.
+
+## Syslog Ingestion Paths (TO BE VERIFIED)
+
+This stack supports two ingestion paths:
+
+- Relay path (existing): sender -> UDP 514 -> rsyslog -> TCP 1514 -> Alloy -> Loki
+- Direct path (new): sender -> UDP 1514 -> Alloy -> Loki
+
+Use the relay path if you want rsyslog in front of Alloy.
+Use the direct path if you want a simpler setup with fewer moving parts.
 
