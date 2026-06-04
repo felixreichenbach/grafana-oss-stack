@@ -68,7 +68,7 @@ The `power-restored` profile emits a two-stage recovery sequence using `upsTrapA
 
 The Telegraf container uses the repo-local `telegraf/mibs/` directory so standard trap OIDs resolve correctly without depending on a host-level bind mount.
 
-> [!INFO]
+> [!NOTE]
 > If you need to populate local MIB files, you can copy them from your host SNMP directory (e.g. Mac):
 > ```sh
 > cp /usr/share/snmp/mibs/*.txt telegraf/mibs/
