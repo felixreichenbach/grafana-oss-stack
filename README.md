@@ -26,6 +26,28 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 docker compose up -d
 ```
 
+### Switch Alloy Destination (Local vs Grafana Cloud)
+
+Use env files to pick which Alloy config is mounted:
+
+A single `alloy/config.alloy` reads Loki connection details from environment variables.
+
+- Local Loki (default):
+
+```sh
+docker compose --env-file .env.local up -d
+```
+
+- Grafana Cloud Loki:
+
+```sh
+cp .env.cloud.example .env.cloud
+# edit .env.cloud and fill in your Grafana Cloud Loki URL, username, and API key
+docker compose --env-file .env.cloud up -d
+```
+
+The three env vars used are `LOKI_URL`, `LOKI_USERNAME`, and `LOKI_PASSWORD`.
+
 ### Stop the stack
 
 ```sh

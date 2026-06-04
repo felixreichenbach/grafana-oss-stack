@@ -5,7 +5,7 @@ loki.source.syslog "meraki" {
     protocol = "tcp"
   }
   relabel_rules = loki.relabel.syslog_fields.rules
-  forward_to = [loki.write.local_loki.receiver]
+  forward_to = [loki.write.default.receiver]
 }
 
 // Optional direct UDP syslog intake on port 1514 (no relay required)
@@ -15,7 +15,7 @@ loki.source.syslog "meraki_udp" {
     protocol = "udp"
   }
   relabel_rules = loki.relabel.syslog_fields.rules
-  forward_to = [loki.write.local_loki.receiver]
+  forward_to = [loki.write.default.receiver]
 }
 
 loki.relabel "syslog_fields" {
@@ -36,10 +36,16 @@ loki.relabel "syslog_fields" {
 	forward_to = []
 }
 
-// Send the logs to your Loki container
-loki.write "local_loki" {
+// Send logs to either local Loki or Grafana Cloud depending on env vars.
+// Set LOKI_URL in your env file. For Cloud also set LOKI_USERNAME and LOKI_PASSWORD.
+loki.write "default" {
   endpoint {
-    url = "http://loki:3100/loki/api/v1/push"
+    url = sys.env("LOKI_URL")
+
+    basic_auth {
+      username = sys.env("LOKI_USERNAME")
+      password = sys.env("LOKI_PASSWORD")
+    }
   }
 }
 
