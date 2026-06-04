@@ -76,3 +76,26 @@ The Telegraf container uses the repo-local `telegraf/mibs/` directory so standar
 
 
 
+## SNMP Trap Ingestion (TO BE VERIFIED)
+
+SNMP traps are received by Telegraf and pushed straight to Loki:
+
+- sender -> UDP 162 -> Telegraf -> Loki
+
+Bring up the receiver:
+
+```sh
+docker compose up -d telegraf-snmp-traps
+```
+
+Query traps in Explore:
+
+```logql
+{job="snmp-traps"}
+```
+
+Generate a local test trap:
+
+```sh
+./telegraf/snmp-trap-sim.sh --run-id demo-snmp-traps-001
+```
