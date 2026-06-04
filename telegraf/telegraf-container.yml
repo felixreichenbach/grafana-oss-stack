@@ -1,7 +1,7 @@
 services:
-  telegraf-snmp-traps:
+  telegraf:
     image: telegraf:latest
-    container_name: telegraf-snmp-traps
+    container_name: telegraf
     environment:
       - MIBDIRS=/usr/share/snmp/mibs
       - MIBS=+ALL

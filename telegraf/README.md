@@ -1,10 +1,10 @@
 # SNMP - Traps Ingestion
 
-Alloy doesn't support SNMP traps natively and therefore Telegraf as intermediary is a good option to receive, preprocess and then forward events to Alloy and Loki.
+Alloy doesn't support SNMP traps natively and therefore Telegraf as intermediary is a good option to receive, preprocess and then forward events to Alloy (optional) and Loki.
 
 ## Included Telegraf Receiver
 
-This stack now includes a `telegraf-snmp-traps` container that:
+This stack now includes a `telegraf` container that:
 
 - listens for SNMP traps on host UDP `162`
 - receives them inside the container on UDP `1162`

@@ -37,11 +37,11 @@ Options:
   -h, --help             Show help
 
 Examples:
-  ./snmp-traps/snmp-trap-sim.sh
-  ./snmp-traps/snmp-trap-sim.sh --count 3 --run-id demo-traps-001
-  ./snmp-traps/snmp-trap-sim.sh --profile power-loss --run-id demo-power-001
-  ./snmp-traps/snmp-trap-sim.sh --profile power-restored --run-id demo-restore-001
-  ./snmp-traps/snmp-trap-sim.sh --host 192.0.2.10 --port 162
+  ./telegraf/snmp-trap-sim.sh
+  ./telegraf/snmp-trap-sim.sh --count 3 --run-id demo-traps-001
+  ./telegraf/snmp-trap-sim.sh --profile power-loss --run-id demo-power-001
+  ./telegraf/snmp-trap-sim.sh --profile power-restored --run-id demo-restore-001
+  ./telegraf/snmp-trap-sim.sh --host 192.0.2.10 --port 162
 EOF
 }
 
