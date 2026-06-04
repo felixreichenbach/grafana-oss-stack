@@ -1,0 +1,14 @@
+services:
+  telegraf-snmp-traps:
+    image: telegraf:latest
+    container_name: telegraf-snmp-traps
+    environment:
+      - MIBDIRS=/usr/share/snmp/mibs
+      - MIBS=+ALL
+    ports:
+      - "162:1162/udp"
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - ./mibs:/usr/share/snmp/mibs:ro
+    depends_on:
+      - loki

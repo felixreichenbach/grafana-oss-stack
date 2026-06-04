@@ -10,6 +10,7 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 | Loki | grafana/loki:latest | 3100 |
 | Alloy | grafana/alloy:latest | 1514/tcp, 1514/udp |
 | rsyslog relay | rsyslog/rsyslog:latest | 514/udp |
+| Telegraf SNMP traps | telegraf:latest | 162/udp |
 | Static website | nginx:alpine | 8088 |
 
 ## Requirements
@@ -77,6 +78,30 @@ Known-good LogQL queries:
 ```
 
 Tip: if logs do not appear, widen the time range in Explore first.
+
+## SNMP Trap Ingestion
+
+SNMP traps are received by Telegraf and pushed straight to Loki:
+
+- sender -> UDP 162 -> Telegraf -> Loki
+
+Bring up the receiver:
+
+```sh
+docker compose up -d telegraf-snmp-traps
+```
+
+Query traps in Explore:
+
+```logql
+{job="snmp-traps"}
+```
+
+Generate a local test trap:
+
+```sh
+./snmp-traps/snmp-trap-sim.sh --run-id demo-snmp-traps-001
+```
 
 ## Quick Local Syslog Tests
 
