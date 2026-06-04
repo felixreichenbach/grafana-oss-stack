@@ -33,25 +33,25 @@ Telegraf sends trap tags such as source, mib, name, oid, and version as Loki lab
 Send a single test trap to the local receiver:
 
 ```sh
-./snmp-traps/snmp-trap-sim.sh
+./telegraf/snmp-trap-sim.sh
 ```
 
 Send a small burst with a fixed marker:
 
 ```sh
-./snmp-traps/snmp-trap-sim.sh --count 3 --run-id demo-snmp-traps-001
+./telegraf/snmp-trap-sim.sh --count 3 --run-id demo-snmp-traps-001
 ```
 
 Send a more realistic UPS power-loss sequence:
 
 ```sh
-./snmp-traps/snmp-trap-sim.sh --profile power-loss --run-id demo-power-loss-001
+./telegraf/snmp-trap-sim.sh --profile power-loss --run-id demo-power-loss-001
 ```
 
 Send the complementary utility power restored sequence:
 
 ```sh
-./snmp-traps/snmp-trap-sim.sh --profile power-restored --run-id demo-power-restored-001
+./telegraf/snmp-trap-sim.sh --profile power-restored --run-id demo-power-restored-001
 ```
 
 Query the marker in Grafana Explore:
@@ -66,5 +66,5 @@ The `power-loss` profile emits a three-stage RFC 1628 UPS-style sequence: utilit
 
 The `power-restored` profile emits a two-stage recovery sequence using `upsTrapAlarmEntryRemoved`: utility power restored and low battery cleared. These events switch the output source back to normal power, set seconds on battery to zero, restore input voltage, and show the battery beginning to recover.
 
-The Telegraf container uses the repo-local `snmp-traps/mibs/` directory so standard trap OIDs resolve correctly without depending on a host-level bind mount.
+The Telegraf container uses the repo-local `telegraf/mibs/` directory so standard trap OIDs resolve correctly without depending on a host-level bind mount.
 

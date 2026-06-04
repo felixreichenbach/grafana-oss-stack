@@ -7,6 +7,8 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - loki-data:/loki
+    depends_on:
+      - grafana
 
 volumes:
   loki-data:

@@ -100,7 +100,7 @@ Query traps in Explore:
 Generate a local test trap:
 
 ```sh
-./snmp-traps/snmp-trap-sim.sh --run-id demo-snmp-traps-001
+./telegraf/snmp-trap-sim.sh --run-id demo-snmp-traps-001
 ```
 
 ## Quick Local Syslog Tests

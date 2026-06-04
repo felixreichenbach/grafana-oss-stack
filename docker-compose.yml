@@ -3,8 +3,8 @@ include:
   - ./syslog/syslog-container.yml
   - ./tempo/tempo-container.yml
   - ./loki/loki-container.yml
-  - ./snmp-traps/telegraf-container.yml
-  - ./static-site/static-site-container.yml
+  - ./telegraf/telegraf-container.yml
+#  - ./static-site/static-site-container.yml
 # - ./openclaw/openclaw.yml
 
 services:

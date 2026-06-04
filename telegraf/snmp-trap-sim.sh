@@ -13,12 +13,15 @@ LOCATION="lab-rack-a"
 TRAP_OID=".1.3.6.1.6.3.1.1.5.1"
 PROFILE="link-down"
 
+# Avoid net-snmp permission warnings for its optional local cache files.
+export SNMP_PERSISTENT_DIR="${SNMP_PERSISTENT_DIR:-/tmp}"
+
 usage() {
   cat <<'EOF'
 SNMP Trap Simulator
 
 Usage:
-  ./snmp-traps/snmp-trap-sim.sh [options]
+  ./telegraf/snmp-trap-sim.sh [options]
 
 Options:
   --host <host>          Destination host (default: 127.0.0.1)
