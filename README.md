@@ -42,11 +42,13 @@ docker compose --env-file .env.local up -d
 
 ```sh
 cp .env.cloud.example .env.cloud
-# edit .env.cloud and fill in your Grafana Cloud Loki URL, username, and API key
+# edit .env.cloud and fill in the Grafana Cloud endpoint URLs and credentials you need
 docker compose --env-file .env.cloud up -d
 ```
 
-The three env vars used are `LOKI_URL`, `LOKI_USERNAME`, and `LOKI_PASSWORD`.
+Currently, `alloy/config.alloy` uses `LOKI_URL`, `LOKI_USERNAME`, and `LOKI_PASSWORD`.
+
+.env.cloud.example also includes Grafana Cloud endpoints for Mimir (metrics), Tempo (traces), Pyroscope (profiles), OTLP gateway, and optional Fleet Management (for Alloy remote config) so they are ready when you wire those pipelines.
 
 ### Stop the stack
 

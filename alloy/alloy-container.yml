@@ -7,6 +7,28 @@ services:
         - "1514:1514/udp" # Opens UDP 1514 for direct syslog ingestion
       volumes:
         - ./config.alloy:/etc/alloy/config.alloy:ro
+      environment:
+        LOKI_URL: ${LOKI_URL:-}
+        LOKI_USERNAME: ${LOKI_USERNAME:-}
+        LOKI_PASSWORD: ${LOKI_PASSWORD:-}
+        MIMIR_URL: ${MIMIR_URL:-}
+        MIMIR_USERNAME: ${MIMIR_USERNAME:-}
+        MIMIR_PASSWORD: ${MIMIR_PASSWORD:-}
+        TEMPO_URL: ${TEMPO_URL:-}
+        TEMPO_USERNAME: ${TEMPO_USERNAME:-}
+        TEMPO_PASSWORD: ${TEMPO_PASSWORD:-}
+        PYROSCOPE_URL: ${PYROSCOPE_URL:-}
+        PYROSCOPE_USERNAME: ${PYROSCOPE_USERNAME:-}
+        PYROSCOPE_PASSWORD: ${PYROSCOPE_PASSWORD:-}
+        OTLP_ENDPOINT: ${OTLP_ENDPOINT:-}
+        OTLP_USERNAME: ${OTLP_USERNAME:-}
+        OTLP_PASSWORD: ${OTLP_PASSWORD:-}
+        OTLP_LOGS_ENDPOINT: ${OTLP_LOGS_ENDPOINT:-}
+        OTLP_METRICS_ENDPOINT: ${OTLP_METRICS_ENDPOINT:-}
+        OTLP_TRACES_ENDPOINT: ${OTLP_TRACES_ENDPOINT:-}
+        FLEET_MANAGEMENT_URL: ${FLEET_MANAGEMENT_URL:-}
+        FLEET_MANAGEMENT_USERNAME: ${FLEET_MANAGEMENT_USERNAME:-}
+        FLEET_MANAGEMENT_PASSWORD: ${FLEET_MANAGEMENT_PASSWORD:-}
       command: run --stability.level=experimental --storage.path=/tmp/alloy-data /etc/alloy/config.alloy
       depends_on:
         - loki
