@@ -1,0 +1,98 @@
+// Listen for syslog messages on TCP port 1514 (octet-counted)
+loki.source.syslog "meraki" {
+  listener {
+    address  = "0.0.0.0:1514"
+    protocol = "tcp"
+  }
+  relabel_rules = loki.relabel.syslog_fields.rules
+  forward_to = [loki.write.default.receiver]
+}
+
+// Optional direct UDP syslog intake on port 1514 (no relay required)
+loki.source.syslog "meraki_udp" {
+  listener {
+    address  = "0.0.0.0:1514"
+    protocol = "udp"
+  }
+  relabel_rules = loki.relabel.syslog_fields.rules
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.relabel "syslog_fields" {
+	rule {
+		source_labels = ["__syslog_message_severity"]
+		target_label  = "level"
+	}
+	rule {
+		replacement  = "meraki-syslog"
+		target_label = "job"
+	}
+	rule {
+		source_labels = ["__syslog_message_hostname"]
+		regex         = "^([^_]+)_.*$"
+		replacement   = "$1"
+		target_label  = "instance"
+	}
+	rule {
+		source_labels = ["__syslog_message_app_name"]
+		target_label  = "syslog_app_name"
+	}
+	forward_to = []
+}
+
+// Optional Fleet Management enrollment for remote configuration.
+// Leave FLEET_MANAGEMENT_* empty if Fleet enrollment is not needed.
+remotecfg {
+	url = sys.env("FLEET_MANAGEMENT_URL")
+
+	basic_auth {
+		username = sys.env("FLEET_MANAGEMENT_USERNAME")
+		password = sys.env("FLEET_MANAGEMENT_PASSWORD")
+	}
+
+	// Keep a stable collector identity in Fleet for this dockerized setup.
+	id             = "alloy-docker"
+	attributes     = {"environment" = "docker", "service" = "alloy"}
+	poll_frequency = "5m"
+}
+
+// Send logs to Grafana Cloud Loki.
+// Set LOKI_URL in your env file. For Cloud also set LOKI_USERNAME and LOKI_PASSWORD.
+loki.write "default" {
+  endpoint {
+    url = sys.env("LOKI_URL")
+
+    basic_auth {
+      username = sys.env("LOKI_USERNAME")
+      password = sys.env("LOKI_PASSWORD")
+    }
+  }
+}
+
+// Receive OTLP traces and forward them to Grafana Cloud Tempo.
+otelcol.receiver.otlp "tempo_ingest" {
+	grpc {
+		endpoint = "0.0.0.0:4317"
+	}
+
+	http {
+		endpoint = "0.0.0.0:4318"
+	}
+
+	output {
+		traces = [otelcol.exporter.otlphttp.to_tempo.input]
+	}
+}
+
+otelcol.exporter.otlphttp "to_tempo" {
+	client {
+		endpoint = sys.env("TEMPO_URL")
+
+		auth = otelcol.auth.basic.tempo_auth.handler
+	}
+}
+
+otelcol.auth.basic "tempo_auth" {
+	username = sys.env("TEMPO_USERNAME")
+	password = sys.env("TEMPO_PASSWORD")
+}

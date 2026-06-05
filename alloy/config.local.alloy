@@ -5,7 +5,7 @@ loki.source.syslog "meraki" {
     protocol = "tcp"
   }
   relabel_rules = loki.relabel.syslog_fields.rules
-  forward_to = [loki.write.local_loki.receiver]
+  forward_to = [loki.write.default.receiver]
 }
 
 // Optional direct UDP syslog intake on port 1514 (no relay required)
@@ -15,13 +15,17 @@ loki.source.syslog "meraki_udp" {
     protocol = "udp"
   }
   relabel_rules = loki.relabel.syslog_fields.rules
-  forward_to = [loki.write.local_loki.receiver]
+  forward_to = [loki.write.default.receiver]
 }
 
 loki.relabel "syslog_fields" {
 	rule {
 		source_labels = ["__syslog_message_severity"]
 		target_label  = "level"
+	}
+	rule {
+		replacement  = "meraki-syslog"
+		target_label = "job"
 	}
 	rule {
 		source_labels = ["__syslog_message_hostname"]
@@ -36,10 +40,10 @@ loki.relabel "syslog_fields" {
 	forward_to = []
 }
 
-// Send the logs to your Loki container
-loki.write "local_loki" {
+// Local mode: write directly to local Loki without auth.
+loki.write "default" {
   endpoint {
-    url = "http://loki:3100/loki/api/v1/push"
+		url = "http://loki:3100/loki/api/v1/push"
   }
 }
 
