@@ -8,7 +8,7 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 |---------|-------|------|
 | Grafana | grafana/grafana-oss:latest | 3000 |
 | Loki | grafana/loki:latest | 3100 |
-| Alloy | grafana/alloy:latest | 1514/tcp, 1514/udp |
+| Alloy | grafana/alloy:latest | Internal only |
 | Rsyslog | rsyslog/rsyslog:latest | 514/udp |
 | Telegraf | telegraf:latest | 162/udp |
 | Static website (optional) | nginx:alpine | 8088 |
@@ -49,7 +49,9 @@ cp .env.cloud.example .env.cloud
 docker compose --env-file .env.cloud up -d
 ```
 
-Both Alloy config variants use `LOKI_URL`, `LOKI_USERNAME`, and `LOKI_PASSWORD`.
+Only cloud mode uses `LOKI_URL`, `LOKI_USERNAME`, and `LOKI_PASSWORD`.
+
+Local mode in `alloy/config.local.alloy` writes directly to `http://loki:3100/loki/api/v1/push`.
 
 `alloy/alloy-container.yml` passes through the full cloud variable set (`LOKI_*`, `MIMIR_*`, `TEMPO_*`, `PYROSCOPE_*`, `OTLP_*`, `FLEET_MANAGEMENT_*`) so they are available for future Alloy pipeline additions.
 

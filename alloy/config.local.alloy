@@ -24,6 +24,10 @@ loki.relabel "syslog_fields" {
 		target_label  = "level"
 	}
 	rule {
+		replacement  = "meraki-syslog"
+		target_label = "job"
+	}
+	rule {
 		source_labels = ["__syslog_message_hostname"]
 		regex         = "^([^_]+)_.*$"
 		replacement   = "$1"

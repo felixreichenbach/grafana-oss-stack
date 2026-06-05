@@ -24,6 +24,10 @@ loki.relabel "syslog_fields" {
 		target_label  = "level"
 	}
 	rule {
+		replacement  = "meraki-syslog"
+		target_label = "job"
+	}
+	rule {
 		source_labels = ["__syslog_message_hostname"]
 		regex         = "^([^_]+)_.*$"
 		replacement   = "$1"
@@ -37,7 +41,7 @@ loki.relabel "syslog_fields" {
 }
 
 // Optional Fleet Management enrollment for remote configuration.
-// Requires FLEET_MANAGEMENT_URL, FLEET_MANAGEMENT_USERNAME, and FLEET_MANAGEMENT_PASSWORD.
+// Leave FLEET_MANAGEMENT_* empty if Fleet enrollment is not needed.
 remotecfg {
 	url = sys.env("FLEET_MANAGEMENT_URL")
 
@@ -52,7 +56,7 @@ remotecfg {
 	poll_frequency = "5m"
 }
 
-// Send logs to either local Loki or Grafana Cloud depending on env vars.
+// Send logs to Grafana Cloud Loki.
 // Set LOKI_URL in your env file. For Cloud also set LOKI_USERNAME and LOKI_PASSWORD.
 loki.write "default" {
   endpoint {
@@ -65,7 +69,7 @@ loki.write "default" {
   }
 }
 
-// Receive OTLP traces (e.g., from Tempo self-telemetry) and forward them to Tempo.
+// Receive OTLP traces and forward them to Grafana Cloud Tempo.
 otelcol.receiver.otlp "tempo_ingest" {
 	grpc {
 		endpoint = "0.0.0.0:4317"
@@ -82,6 +86,13 @@ otelcol.receiver.otlp "tempo_ingest" {
 
 otelcol.exporter.otlphttp "to_tempo" {
 	client {
-		endpoint = "http://tempo:4318"
+		endpoint = sys.env("TEMPO_URL")
+
+		auth = otelcol.auth.basic.tempo_auth.handler
 	}
+}
+
+otelcol.auth.basic "tempo_auth" {
+	username = sys.env("TEMPO_USERNAME")
+	password = sys.env("TEMPO_PASSWORD")
 }

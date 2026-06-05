@@ -2,9 +2,6 @@ services:
   alloy:
       image: grafana/alloy:latest
       container_name: alloy
-      ports:
-        - "1514:1514/tcp" # Opens TCP 1514 to the host/other containers
-        - "1514:1514/udp" # Opens UDP 1514 for direct syslog ingestion
       volumes:
         - ./${ALLOY_CONFIG_FILE:-config.local.alloy}:/etc/alloy/config.alloy:ro
       environment:
