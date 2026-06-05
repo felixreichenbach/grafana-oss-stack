@@ -65,6 +65,9 @@ docker compose down
 
 ```sh
 docker compose down -v
+
+# or including orphaned items
+docker compose down -v --remove-orphans
 ```
 
 ### Access Grafana
