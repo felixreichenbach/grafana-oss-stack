@@ -10,6 +10,7 @@ services:
       - GF_SECURITY_ALLOW_EMBEDDING=true
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning:ro
       #- ./grafana.ini:/etc/grafana/grafana.ini
 
 volumes:

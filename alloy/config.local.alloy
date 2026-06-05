@@ -36,16 +36,10 @@ loki.relabel "syslog_fields" {
 	forward_to = []
 }
 
-// Send logs to either local Loki or Grafana Cloud depending on env vars.
-// Set LOKI_URL in your env file. For Cloud also set LOKI_USERNAME and LOKI_PASSWORD.
+// Local mode: write directly to local Loki without auth.
 loki.write "default" {
   endpoint {
-    url = sys.env("LOKI_URL")
-
-    basic_auth {
-      username = sys.env("LOKI_USERNAME")
-      password = sys.env("LOKI_PASSWORD")
-    }
+		url = "http://loki:3100/loki/api/v1/push"
   }
 }
 

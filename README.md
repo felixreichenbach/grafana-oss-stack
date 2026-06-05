@@ -75,10 +75,18 @@ Default credentials:
 - **Username:** `admin`
 - **Password:** `admin`
 
-### Connect Loki as a Data Source
+### Loki Data Source Provisioning
 
-1. In Grafana, go to **Connections > Data Sources**.
-2. Click **Add data source** and select **Loki**.
-3. Set the URL to `http://loki:3100`.
-4. Click **Save & test**.
+Grafana auto-registers Loki on startup via provisioning.
+
+- Config file: `grafana/provisioning/datasources/loki.yml`
+- URL used: `http://loki:3100`
+
+To apply changes after editing provisioning files:
+
+```sh
+docker compose restart grafana
+```
+
+To verify in the UI: **Connections > Data Sources** should already contain **Loki**.
 
