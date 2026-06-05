@@ -11,7 +11,7 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 | Alloy | grafana/alloy:latest | 1514/tcp, 1514/udp |
 | Rsyslog | rsyslog/rsyslog:latest | 514/udp |
 | Telegraf | telegraf:latest | 162/udp |
-| Static website | nginx:alpine | 8088 |
+| Static website (optional) | nginx:alpine | 8088 |
 
 ## Requirements
 
@@ -23,14 +23,17 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 ### Start the stack
 
 ```sh
-docker compose up -d
+docker compose --env-file .env.local up -d
 ```
 
 ### Switch Alloy Destination (Local vs Grafana Cloud)
 
-Use env files to pick which Alloy config is mounted:
+Use env files to select the runtime endpoints and credentials Alloy receives:
 
-A single `alloy/config.alloy` reads Loki connection details from environment variables.
+Alloy uses `ALLOY_CONFIG_FILE` from the selected env file to choose the mounted config:
+
+- `alloy/config.local.alloy` (local mode, no Fleet enrollment)
+- `alloy/config.cloud.alloy` (cloud mode, includes Fleet `remotecfg`)
 
 - Local Loki (default):
 
@@ -46,9 +49,11 @@ cp .env.cloud.example .env.cloud
 docker compose --env-file .env.cloud up -d
 ```
 
-Currently, `alloy/config.alloy` uses `LOKI_URL`, `LOKI_USERNAME`, and `LOKI_PASSWORD`.
+Both Alloy config variants use `LOKI_URL`, `LOKI_USERNAME`, and `LOKI_PASSWORD`.
 
-.env.cloud.example also includes Grafana Cloud endpoints for Mimir (metrics), Tempo (traces), Pyroscope (profiles), OTLP gateway, and optional Fleet Management (for Alloy remote config) so they are ready when you wire those pipelines.
+`alloy/alloy-container.yml` passes through the full cloud variable set (`LOKI_*`, `MIMIR_*`, `TEMPO_*`, `PYROSCOPE_*`, `OTLP_*`, `FLEET_MANAGEMENT_*`) so they are available for future Alloy pipeline additions.
+
+.env.cloud.example also includes Grafana Cloud endpoints for Mimir (metrics), Tempo (traces), Pyroscope (profiles), OTLP gateway, and optional Fleet Management (for Alloy remote config).
 
 ### Stop the stack
 

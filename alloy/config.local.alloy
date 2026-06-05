@@ -36,22 +36,6 @@ loki.relabel "syslog_fields" {
 	forward_to = []
 }
 
-// Optional Fleet Management enrollment for remote configuration.
-// Requires FLEET_MANAGEMENT_URL, FLEET_MANAGEMENT_USERNAME, and FLEET_MANAGEMENT_PASSWORD.
-remotecfg {
-	url = sys.env("FLEET_MANAGEMENT_URL")
-
-	basic_auth {
-		username = sys.env("FLEET_MANAGEMENT_USERNAME")
-		password = sys.env("FLEET_MANAGEMENT_PASSWORD")
-	}
-
-	// Keep a stable collector identity in Fleet for this dockerized setup.
-	id             = "alloy-docker"
-	attributes     = {"environment" = "docker", "service" = "alloy"}
-	poll_frequency = "5m"
-}
-
 // Send logs to either local Loki or Grafana Cloud depending on env vars.
 // Set LOKI_URL in your env file. For Cloud also set LOKI_USERNAME and LOKI_PASSWORD.
 loki.write "default" {

@@ -9,7 +9,7 @@ To fix this, Rsyslog will take the message and update / reformat the Syslog head
 
 See [`rsyslog.conf`](./rsyslog.conf) for the configuration.
 
-Also have a look at the [`config.alloy`](../alloy/config.alloy) syslog section.
+Also have a look at the syslog sections in [`config.local.alloy`](../alloy/config.local.alloy) and [`config.cloud.alloy`](../alloy/config.cloud.alloy).
 
 
 ### Sample Meraki Syslog Messages
