@@ -1,9 +1,0 @@
-services:
-  static-site:
-    image: nginx:alpine
-    container_name: static-site
-    ports:
-      - "8088:80"
-    volumes:
-      - ./site:/usr/share/nginx/html:ro
-    restart: unless-stopped

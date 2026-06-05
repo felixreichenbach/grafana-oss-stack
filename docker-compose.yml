@@ -5,6 +5,5 @@ include:
   - ./loki/loki-container.yml
   - ./telegraf/telegraf-container.yml
   - ./grafana/grafana-container.yml
-#  - ./static-site/static-site-container.yml
 # - ./openclaw/openclaw.yml
 
