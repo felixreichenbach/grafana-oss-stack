@@ -56,6 +56,22 @@ remotecfg {
 	poll_frequency = "5m"
 }
 
+// Loki Push API receiver endpoint:
+// POST http://localhost:9999/loki/api/v1/push
+loki.source.api "loki_push_api" {
+	http {
+		listen_address = "0.0.0.0"
+		listen_port    = 9999
+	}
+
+	use_incoming_timestamp = true
+	labels = {
+		job = "alloy-loki-api",
+	}
+
+	forward_to = [loki.write.default.receiver]
+}
+
 // Send logs to Grafana Cloud Loki.
 // Set LOKI_URL in your env file. For Cloud also set LOKI_USERNAME and LOKI_PASSWORD.
 loki.write "default" {
