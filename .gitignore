@@ -2,3 +2,7 @@
 telegraf/mibs/*
 !telegraf/mibs/.gitkeep
 .env.cloud
+
+# Keep the syslog/log directory, but ignore everything inside it.
+syslog/log/**
+!syslog/log/.gitkeep
