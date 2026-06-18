@@ -1,0 +1,33 @@
+
+
+# Run all Mimir components in a single process
+target: all
+
+# Disable tenant requirement (defaults to 'anonymous' if false)
+multitenancy_enabled: false
+
+server:
+  http_listen_port: 9009
+  grpc_listen_port: 9095
+
+common:
+  storage:
+    backend: filesystem
+    filesystem:
+      dir: /tmp/mimir/data
+
+# Single-instance ring overrides (bypasses distributed cluster requirements)
+ingester:
+  ring:
+    kvstore:
+      store: inmemory
+    replication_factor: 1
+
+blocks_storage:
+  tsdb:
+    dir: /tmp/mimir/tsdb
+
+ruler_storage:
+  backend: filesystem
+  filesystem:
+    dir: /tmp/mimir/ruler

@@ -2,6 +2,7 @@ include:
   - ./alloy/alloy-container.yml
   - ./syslog/syslog-container.yml
   - ./tempo/tempo-container.yml
+  - ./mimir/mimir-container.yml
   - ./loki/loki-container.yml
   - ./telegraf/telegraf-container.yml
   - ./grafana/grafana-container.yml
