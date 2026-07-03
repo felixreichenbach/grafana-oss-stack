@@ -29,7 +29,7 @@ The relay now normalizes inbound messages as follows:
 Example (missing PRI, will be normalized by prepending `<134>`):
 
 ```sh
-printf '1 2026-06-09T12:42:57.816+02:00 azweclpp1pb01.barry-callebaut.com ClearPass 18094 36-1-0 [timeQuality tzKnown="1"][origin swVersion="6.12.7.308288" software="PolicyManager" ip="10.246.30.68" enterpriseId="1.3.6.1.4.1.14823"][clearPass@14823 eventId="3010" Action="MODIFY" Category="Guest User" User="clusteradmin" EntityName="pravin_matte@barry-callebaut.com" CppmNode.CPPM-Node="10.246.30.68" Timestamp="2026-06-09T12:41:44.147+02:00"]\n' | nc -u -w 1 127.0.0.1 514
+printf '1 2026-06-09T12:42:57.816+02:00 xyz.abc.com ClearPass 18094 36-1-0 [timeQuality tzKnown="1"][origin swVersion="6.12.7.308999" software="PolicyManager" ip="10.128.11.11" enterpriseId="1.1.2.3.2.1.2777"][clearPass@2777 eventId="3010" Action="MODIFY" Category="Guest User" User="clusteradmin" EntityName="xyz@abc.com" CppmNode.CPPM-Node="10.128.11.11" Timestamp="2026-06-09T12:41:44.147+02:00"]\n' | nc -u -w 1 127.0.0.1 514
 ```
 
 Example (already compliant RFC5424 with PRI, will pass through):
@@ -52,7 +52,7 @@ You can send these raw Meraki Syslog messages via command line from within one o
 ```shell
 echo -n '<134>1 1779791764.872052699 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.124:53613 dst=63.140.39.244:443 mac=C4:47:4E:37:A3:61 request: UNKNOWN https://sstats.adobe.com/...' | nc -u -w 1 syslog 514
 
-echo -n '<134>1 1780661476.730182000 BEWILBCSW001_2_Basement_ events Port bounce requested: Ports 12 will be switched off for 5 seconds' | nc -u -w 1 syslog 514
+echo -n '<134>1 1780661476.730182000 ABCILABSW111_2_XYZ_ events Port bounce requested: Ports 12 will be switched off for 5 seconds' | nc -u -w 1 syslog 514
 ```
 
 ### Meraki Syslog Simulator (TO BE VERIFIED)

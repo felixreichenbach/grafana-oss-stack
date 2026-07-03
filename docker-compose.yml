@@ -3,6 +3,7 @@ include:
   - ./syslog/syslog-container.yml
   - ./tempo/tempo-container.yml
   - ./mimir/mimir-container.yml
+  - ./prometheus/prometheus-container.yml
   - ./loki/loki-container.yml
   - ./telegraf/telegraf-container.yml
   - ./grafana/grafana-container.yml
