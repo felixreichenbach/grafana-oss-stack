@@ -11,6 +11,39 @@ See [`rsyslog.conf`](./rsyslog.conf) for the configuration.
 
 Also have a look at the syslog sections in [`config.local.alloy`](../alloy/config.local.alloy) and [`config.cloud.alloy`](../alloy/config.cloud.alloy).
 
+## Aruba/ClearPass RFC Compliance Workaround
+
+Some Aruba/ClearPass messages are nearly RFC5424 but arrive without a PRI prefix
+(for example they start with `1 2026-06-09T...`). Alloy expects a valid syslog frame,
+so these can be dropped.
+
+The relay now normalizes inbound messages as follows:
+
+- Meraki epoch-style RFC5424-like lines (`<PRI>1 <epoch.seconds> ...`) are converted to RFC3339 timestamps.
+- Already valid RFC5424 lines (`<PRI>1 <timestamp> ...`) are passed through untouched.
+- RFC5424 bodies without PRI (`1 <timestamp> ...`) get a default `<134>` PRI prepended.
+- Any other line is wrapped into a minimal RFC5424 envelope so it remains ingestible.
+
+### Aruba Test Messages
+
+Example (missing PRI, will be normalized by prepending `<134>`):
+
+```sh
+printf '1 2026-06-09T12:42:57.816+02:00 xyz.abc.com ClearPass 18094 36-1-0 [timeQuality tzKnown="1"][origin swVersion="6.12.7.308999" software="PolicyManager" ip="10.128.11.11" enterpriseId="1.1.2.3.2.1.2777"][clearPass@2777 eventId="3010" Action="MODIFY" Category="Guest User" User="clusteradmin" EntityName="xyz@abc.com" CppmNode.CPPM-Node="10.128.11.11" Timestamp="2026-06-09T12:41:44.147+02:00"]\n' | nc -u -w 1 127.0.0.1 514
+```
+
+Example (already compliant RFC5424 with PRI, will pass through):
+
+```sh
+printf '<13>1 2026-06-09T10:42:49.463707+00:00 azweugrafana01 vmadmin - - [timeQuality tzKnown="1" isSynced="1" syncAccuracy="1009"] TEST MESSAGE\n' | nc -u -w 1 127.0.0.1 514
+```
+
+In Grafana Explore, query ClearPass events with:
+
+```logql
+{job="meraki-syslog", syslog_app_name="ClearPass"}
+```
+
 
 ### Sample Meraki Syslog Messages
 
@@ -19,7 +52,7 @@ You can send these raw Meraki Syslog messages via command line from within one o
 ```shell
 echo -n '<134>1 1779791764.872052699 BRBSGAWAP201_Farme_Service_ urls src=10.157.26.124:53613 dst=63.140.39.244:443 mac=C4:47:4E:37:A3:61 request: UNKNOWN https://sstats.adobe.com/...' | nc -u -w 1 syslog 514
 
-echo -n '<134>1 1780661476.730182000 BEWILBCSW001_2_Basement_ events Port bounce requested: Ports 12 will be switched off for 5 seconds' | nc -u -w 1 syslog 514
+echo -n '<134>1 1780661476.730182000 ABCILABSW111_2_XYZ_ events Port bounce requested: Ports 12 will be switched off for 5 seconds' | nc -u -w 1 syslog 514
 ```
 
 ### Meraki Syslog Simulator (TO BE VERIFIED)

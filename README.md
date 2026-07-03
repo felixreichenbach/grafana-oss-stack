@@ -8,6 +8,7 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 |---------|-------|------|
 | Grafana | grafana/grafana-oss:latest | 3000 |
 | Loki | grafana/loki:latest | 3100 |
+| Mimir | grafana/mimir:latest | 9009 |
 | Alloy | grafana/alloy:latest | Internal only |
 | Rsyslog | rsyslog/rsyslog:latest | 514/udp |
 | Telegraf | telegraf:latest | 162/udp |
@@ -86,6 +87,13 @@ Grafana auto-registers Loki on startup via provisioning.
 
 - Config file: `grafana/provisioning/datasources/loki.yml`
 - URL used: `http://loki:3100`
+
+### Mimir Data Source Provisioning
+
+Grafana auto-registers Mimir (Prometheus-compatible) on startup via provisioning.
+
+- Config file: `grafana/provisioning/datasources/mimir.yml`
+- URL used: `http://mimir:9009/prometheus`
 
 To apply changes after editing provisioning files:
 
