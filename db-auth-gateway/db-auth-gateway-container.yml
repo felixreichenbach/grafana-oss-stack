@@ -1,0 +1,14 @@
+services:
+  db-auth-gateway:
+    image: grafana/db-auth-gateway:latest
+    container_name: db-auth-gateway
+    # Gateway sits in front of Grafana, 3001 is used as the proxy is only used if explicitly activated
+    ports:
+      - "3001:3001"
+    environment:
+      - GF_DB_AUTH_GATEWAY_PORT=3001
+    volumes:
+      - db-auth-gateway-data:/var/lib/db-auth-gateway
+
+volumes:
+  db-auth-gateway-data:

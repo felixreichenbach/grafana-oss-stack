@@ -7,5 +7,6 @@ include:
   - ./loki/loki-container.yml
   - ./telegraf/telegraf-container.yml
   - ./grafana/grafana-container.yml
+  - ./db-auth-gateway/db-auth-gateway-container.yml
 # - ./openclaw/openclaw.yml
 
