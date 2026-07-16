@@ -7,6 +7,7 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 | Service | Image | Port |
 |---------|-------|------|
 | Grafana | grafana/grafana-oss:latest | 3000 |
+| DB Auth Gateway | grafana/db-auth-gateway:latest | 3001 |
 | Loki | grafana/loki:latest | 3100 |
 | Mimir | grafana/mimir:latest | 9009 |
 | Alloy | grafana/alloy:latest | Internal only |
