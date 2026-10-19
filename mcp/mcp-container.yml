@@ -20,12 +20,12 @@ services:
       - GRAFANA_PASSWORD=${GRAFANA_MCP_PASSWORD:-admin}
     networks:
       - default
-      - grafana-mcp
+      - grafana
     depends_on:
       - grafana
     restart: unless-stopped
 
 # Owned by this project. Other compose projects attach with `external: true`.
 networks:
-  grafana-mcp:
-    name: grafana-mcp
+  grafana:
+    name: grafana
