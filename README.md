@@ -11,7 +11,7 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 | Mimir | grafana/mimir:latest | Internal only |
 | Alloy | grafana/alloy:latest | Internal only |
 | Grafana MCP server | grafana/mcp-grafana:latest | 127.0.0.1:8000 |
-| Tempo (OTLP) | grafana/tempo:latest | 127.0.0.1:4317, 127.0.0.1:4318 |
+| Tempo | grafana/tempo:latest | Shared `grafana` network only |
 | Prometheus | prom/prometheus:latest | Internal only |
 | Rsyslog | rsyslog/rsyslog:latest | 514/udp |
 | Telegraf | telegraf:latest | 162/udp |
