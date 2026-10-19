@@ -4,13 +4,15 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 
 ## Services
 
-| Service | Image | Port |
-|---------|-------|------|
-| Grafana | grafana/grafana-oss:latest | 3000 |
-| Loki | grafana/loki:latest | 3100 |
-| Mimir | grafana/mimir:latest | 9009 |
+| Service | Image | Host port |
+|---------|-------|-----------|
+| Grafana | grafana/grafana-oss:latest | 127.0.0.1:3001 |
+| Loki | grafana/loki:latest | Internal only |
+| Mimir | grafana/mimir:latest | Internal only |
 | Alloy | grafana/alloy:latest | Internal only |
-| Grafana MCP server | grafana/mcp-grafana:latest | 8000 |
+| Grafana MCP server | grafana/mcp-grafana:latest | 127.0.0.1:8000 |
+| Tempo (OTLP) | grafana/tempo:latest | 127.0.0.1:4317, 127.0.0.1:4318 |
+| Prometheus | prom/prometheus:latest | Internal only |
 | Rsyslog | rsyslog/rsyslog:latest | 514/udp |
 | Telegraf | telegraf:latest | 162/udp |
 | Static website (optional) | nginx:alpine | 8088 |
@@ -19,6 +21,8 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
+
+Only ports that something outside the stack needs are published, and HTTP ports are bound to `127.0.0.1`. Services reach each other by service name on the compose network. Use Grafana's Explore view to query Loki, Mimir, Prometheus and Tempo.
 
 ## Getting Started
 
@@ -76,7 +80,7 @@ docker compose down -v --remove-orphans
 
 ### Access Grafana
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3001](http://localhost:3001) in your browser.
 
 Default credentials:
 - **Username:** `admin`
