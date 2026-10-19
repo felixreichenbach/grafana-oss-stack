@@ -4,12 +4,15 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 
 ## Services
 
-| Service | Image | Port |
-|---------|-------|------|
-| Grafana | grafana/grafana-oss:latest | 3000 |
-| Loki | grafana/loki:latest | 3100 |
-| Mimir | grafana/mimir:latest | 9009 |
+| Service | Image | Host port |
+|---------|-------|-----------|
+| Grafana | grafana/grafana-oss:latest | 127.0.0.1:3001 |
+| Loki | grafana/loki:latest | Internal only |
+| Mimir | grafana/mimir:latest | Internal only |
 | Alloy | grafana/alloy:latest | Internal only |
+| Grafana MCP server | grafana/mcp-grafana:latest | 127.0.0.1:8000 |
+| Tempo (OTLP) | grafana/tempo:latest | 127.0.0.1:4317, 127.0.0.1:4318 |
+| Prometheus | prom/prometheus:latest | Internal only |
 | Rsyslog | rsyslog/rsyslog:latest | 514/udp |
 | Telegraf | telegraf:latest | 162/udp |
 | Static website (optional) | nginx:alpine | 8088 |
@@ -18,6 +21,8 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
+
+Only ports that something outside the stack needs are published, and HTTP ports are bound to `127.0.0.1`. Services reach each other by service name on the compose network. Use Grafana's Explore view to query Loki, Mimir, Prometheus and Tempo.
 
 ## Getting Started
 
@@ -75,11 +80,55 @@ docker compose down -v --remove-orphans
 
 ### Access Grafana
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3001](http://localhost:3001) in your browser.
 
 Default credentials:
 - **Username:** `admin`
 - **Password:** `admin`
+
+### Connecting other projects
+
+This stack owns a shared Docker network named `grafana` (declared in `docker-compose.yml`) and creates it on startup. Another compose project on the same Docker host joins it and reaches the services below by name. Start this stack first, because the network is `external` for everyone else:
+
+```yaml
+services:
+  my-agent:
+    networks: [grafana]
+
+networks:
+  grafana:
+    external: true
+```
+
+| Service | URL from an attached project |
+|---------|------------------------------|
+| Grafana MCP server | `http://mcp-grafana:8000/mcp` |
+| Tempo OTLP gRPC | `tempo:4317` |
+| Tempo OTLP HTTP | `http://tempo:4318` |
+
+All other services stay on the stack's private default network and are not reachable from attached projects. To expose another service, add `grafana` to its `networks` (keep `default` too, so it still talks to the rest of the stack):
+
+```yaml
+    networks:
+      - default
+      - grafana
+```
+
+Anyone on the `grafana` network can reach these services without authentication.
+
+### Grafana MCP Server
+
+`mcp/mcp-container.yml` runs [mcp-grafana](https://github.com/grafana/mcp-grafana) with the streamable HTTP transport at `http://localhost:8000/mcp`. It talks to Grafana at `http://grafana:3000`.
+
+By default it authenticates with the local admin credentials. For anything beyond local dev, create a service account token in Grafana and set `GRAFANA_SERVICE_ACCOUNT_TOKEN` in your env file.
+
+The host port is bound to `127.0.0.1` only, for use from the host (e.g. Claude Code). Other compose projects reach it over the shared network, see [Connecting other projects](#connecting-other-projects).
+
+Add it to Claude Code:
+
+```sh
+claude mcp add --transport http grafana http://localhost:8000/mcp
+```
 
 ### Loki Data Source Provisioning
 
@@ -87,6 +136,13 @@ Grafana auto-registers Loki on startup via provisioning.
 
 - Config file: `grafana/provisioning/datasources/loki.yml`
 - URL used: `http://loki:3100`
+
+### Tempo Data Source Provisioning
+
+Grafana auto-registers Tempo on startup via provisioning.
+
+- Config file: `grafana/provisioning/datasources/tempo.yml`
+- URL used: `http://tempo:3200`
 
 ### Mimir Data Source Provisioning
 

@@ -7,5 +7,9 @@ include:
   - ./loki/loki-container.yml
   - ./telegraf/telegraf-container.yml
   - ./grafana/grafana-container.yml
-# - ./openclaw/openclaw.yml
+  - ./mcp/mcp-container.yml
 
+# Shared network owned by this project. Other compose projects attach with `external: true`.
+networks:
+  grafana:
+    name: grafana

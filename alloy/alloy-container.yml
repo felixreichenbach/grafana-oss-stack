@@ -27,6 +27,6 @@ services:
         FLEET_MANAGEMENT_URL: ${FLEET_MANAGEMENT_URL:-}
         FLEET_MANAGEMENT_USERNAME: ${FLEET_MANAGEMENT_USERNAME:-}
         FLEET_MANAGEMENT_PASSWORD: ${FLEET_MANAGEMENT_PASSWORD:-}
-      command: run --stability.level=experimental --storage.path=/tmp/alloy-data /etc/alloy/config.alloy
+      command: run --server.http.listen-addr=0.0.0.0:12345 --stability.level=experimental --storage.path=/tmp/alloy-data /etc/alloy/config.alloy
       depends_on:
         - loki
