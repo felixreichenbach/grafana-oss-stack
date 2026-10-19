@@ -8,5 +8,4 @@ include:
   - ./telegraf/telegraf-container.yml
   - ./grafana/grafana-container.yml
   - ./mcp/mcp-container.yml
-# - ./openclaw/openclaw.yml
 
