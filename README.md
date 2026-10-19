@@ -10,8 +10,8 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 | Loki | grafana/loki:latest | Internal only |
 | Mimir | grafana/mimir:latest | Internal only |
 | Alloy | grafana/alloy:latest | Internal only |
-| Grafana MCP server | grafana/mcp-grafana:latest | 127.0.0.1:8000 |
-| Tempo (OTLP) | grafana/tempo:latest | 127.0.0.1:4317, 127.0.0.1:4318 |
+| Grafana MCP server | grafana/mcp-grafana:latest | Shared `grafana` network only |
+| Tempo | grafana/tempo:latest | Shared `grafana` network only |
 | Prometheus | prom/prometheus:latest | Internal only |
 | Rsyslog | rsyslog/rsyslog:latest | 514/udp |
 | Telegraf | telegraf:latest | 162/udp |
@@ -118,17 +118,11 @@ Anyone on the `grafana` network can reach these services without authentication.
 
 ### Grafana MCP Server
 
-`mcp/mcp-container.yml` runs [mcp-grafana](https://github.com/grafana/mcp-grafana) with the streamable HTTP transport at `http://localhost:8000/mcp`. It talks to Grafana at `http://grafana:3000`.
+`mcp/mcp-container.yml` runs [mcp-grafana](https://github.com/grafana/mcp-grafana) with the streamable HTTP transport at `http://mcp-grafana:8000/mcp` (shared network only). It talks to Grafana at `http://grafana:3000`.
 
-By default it authenticates with the local admin credentials. For anything beyond local dev, create a service account token in Grafana and set `GRAFANA_SERVICE_ACCOUNT_TOKEN` in your env file.
+By default it talks to the local Grafana and authenticates with the admin credentials. To use Grafana Cloud instead, set `GRAFANA_MCP_URL` and `GRAFANA_SERVICE_ACCOUNT_TOKEN` in `.env.cloud` (see `.env.cloud.example`). For anything beyond local dev, use a service account token locally too.
 
-The host port is bound to `127.0.0.1` only, for use from the host (e.g. Claude Code). Other compose projects reach it over the shared network, see [Connecting other projects](#connecting-other-projects).
-
-Add it to Claude Code:
-
-```sh
-claude mcp add --transport http grafana http://localhost:8000/mcp
-```
+It is not published on the host. Other compose projects reach it over the shared network, see [Connecting other projects](#connecting-other-projects).
 
 ### Loki Data Source Provisioning
 
