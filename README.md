@@ -137,6 +137,13 @@ Grafana auto-registers Loki on startup via provisioning.
 - Config file: `grafana/provisioning/datasources/loki.yml`
 - URL used: `http://loki:3100`
 
+### Tempo Data Source Provisioning
+
+Grafana auto-registers Tempo on startup via provisioning.
+
+- Config file: `grafana/provisioning/datasources/tempo.yml`
+- URL used: `http://tempo:3200`
+
 ### Mimir Data Source Provisioning
 
 Grafana auto-registers Mimir (Prometheus-compatible) on startup via provisioning.
