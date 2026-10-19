@@ -10,7 +10,7 @@ services:
       - --allowed-hosts
       - mcp-grafana:8000
     environment:
-      - GRAFANA_URL=http://grafana:3000
+      - GRAFANA_URL=${GRAFANA_MCP_URL:-http://grafana:3000}
       # Preferred: a Grafana service account token (Administration > Users and access > Service accounts)
       - GRAFANA_SERVICE_ACCOUNT_TOKEN=${GRAFANA_SERVICE_ACCOUNT_TOKEN:-}
       # Fallback for local dev when no token is set
