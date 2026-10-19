@@ -86,13 +86,9 @@ Default credentials:
 - **Username:** `admin`
 - **Password:** `admin`
 
-### Grafana MCP Server
+### Connecting other projects
 
-`mcp/mcp-container.yml` runs [mcp-grafana](https://github.com/grafana/mcp-grafana) with the streamable HTTP transport at `http://localhost:8000/mcp`. It talks to Grafana at `http://grafana:3000`.
-
-By default it authenticates with the local admin credentials. For anything beyond local dev, create a service account token in Grafana and set `GRAFANA_SERVICE_ACCOUNT_TOKEN` in your env file.
-
-The host port is bound to `127.0.0.1` only, for use from the host (e.g. Claude Code). This project owns a shared network named `grafana`, which is created when the stack starts. Other compose projects reach the server at `http://mcp-grafana:8000/mcp` by attaching to it, so start this stack first:
+This stack owns a shared Docker network named `grafana` (declared in `mcp/mcp-container.yml`) and creates it on startup. Another compose project on the same Docker host joins it and reaches the services below by name. Start this stack first, because the network is `external` for everyone else:
 
 ```yaml
 services:
@@ -103,6 +99,30 @@ networks:
   grafana:
     external: true
 ```
+
+| Service | URL from an attached project |
+|---------|------------------------------|
+| Grafana MCP server | `http://mcp-grafana:8000/mcp` |
+| Tempo OTLP gRPC | `tempo:4317` |
+| Tempo OTLP HTTP | `http://tempo:4318` |
+
+All other services stay on the stack's private default network and are not reachable from attached projects. To expose another service, add `grafana` to its `networks` (keep `default` too, so it still talks to the rest of the stack):
+
+```yaml
+    networks:
+      - default
+      - grafana
+```
+
+Anyone on the `grafana` network can reach these services without authentication.
+
+### Grafana MCP Server
+
+`mcp/mcp-container.yml` runs [mcp-grafana](https://github.com/grafana/mcp-grafana) with the streamable HTTP transport at `http://localhost:8000/mcp`. It talks to Grafana at `http://grafana:3000`.
+
+By default it authenticates with the local admin credentials. For anything beyond local dev, create a service account token in Grafana and set `GRAFANA_SERVICE_ACCOUNT_TOKEN` in your env file.
+
+The host port is bound to `127.0.0.1` only, for use from the host (e.g. Claude Code). Other compose projects reach it over the shared network, see [Connecting other projects](#connecting-other-projects).
 
 Add it to Claude Code:
 
