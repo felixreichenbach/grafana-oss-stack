@@ -7,8 +7,10 @@ services:
       - streamable-http
       - --address
       - 0.0.0.0:8000
+      - --allowed-hosts
+      - mcp-grafana:8000,localhost:8000,127.0.0.1:8000
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       - GRAFANA_URL=http://grafana:3000
       # Preferred: a Grafana service account token (Administration > Users and access > Service accounts)
@@ -16,6 +18,15 @@ services:
       # Fallback for local dev when no token is set
       - GRAFANA_USERNAME=${GRAFANA_MCP_USERNAME:-admin}
       - GRAFANA_PASSWORD=${GRAFANA_MCP_PASSWORD:-admin}
+    networks:
+      - default
+      - grafana-mcp
     depends_on:
       - grafana
     restart: unless-stopped
+
+# Shared network so other compose projects can reach the MCP server by name.
+# Attach with `networks: { grafana-mcp: { external: true } }`.
+networks:
+  grafana-mcp:
+    name: grafana-mcp

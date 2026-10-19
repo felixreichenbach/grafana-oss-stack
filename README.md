@@ -88,6 +88,18 @@ Default credentials:
 
 By default it authenticates with the local admin credentials. For anything beyond local dev, create a service account token in Grafana and set `GRAFANA_SERVICE_ACCOUNT_TOKEN` in your env file.
 
+The host port is bound to `127.0.0.1` only. Containers from other compose projects reach it at `http://mcp-grafana:8000/mcp` by joining the shared `grafana-mcp` network:
+
+```yaml
+services:
+  my-agent:
+    networks: [grafana-mcp]
+
+networks:
+  grafana-mcp:
+    external: true
+```
+
 Add it to Claude Code:
 
 ```sh
