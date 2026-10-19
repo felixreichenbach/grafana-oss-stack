@@ -10,6 +10,7 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 | Loki | grafana/loki:latest | 3100 |
 | Mimir | grafana/mimir:latest | 9009 |
 | Alloy | grafana/alloy:latest | Internal only |
+| Grafana MCP server | grafana/mcp-grafana:latest | 8000 |
 | Rsyslog | rsyslog/rsyslog:latest | 514/udp |
 | Telegraf | telegraf:latest | 162/udp |
 | Static website (optional) | nginx:alpine | 8088 |
@@ -80,6 +81,18 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 Default credentials:
 - **Username:** `admin`
 - **Password:** `admin`
+
+### Grafana MCP Server
+
+`mcp/mcp-container.yml` runs [mcp-grafana](https://github.com/grafana/mcp-grafana) with the streamable HTTP transport at `http://localhost:8000/mcp`. It talks to Grafana at `http://grafana:3000`.
+
+By default it authenticates with the local admin credentials. For anything beyond local dev, create a service account token in Grafana and set `GRAFANA_SERVICE_ACCOUNT_TOKEN` in your env file.
+
+Add it to Claude Code:
+
+```sh
+claude mcp add --transport http grafana http://localhost:8000/mcp
+```
 
 ### Loki Data Source Provisioning
 
