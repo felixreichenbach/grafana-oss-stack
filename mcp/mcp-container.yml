@@ -24,8 +24,3 @@ services:
     depends_on:
       - grafana
     restart: unless-stopped
-
-# Owned by this project. Other compose projects attach with `external: true`.
-networks:
-  grafana:
-    name: grafana

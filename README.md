@@ -88,7 +88,7 @@ Default credentials:
 
 ### Connecting other projects
 
-This stack owns a shared Docker network named `grafana` (declared in `mcp/mcp-container.yml`) and creates it on startup. Another compose project on the same Docker host joins it and reaches the services below by name. Start this stack first, because the network is `external` for everyone else:
+This stack owns a shared Docker network named `grafana` (declared in `docker-compose.yml`) and creates it on startup. Another compose project on the same Docker host joins it and reaches the services below by name. Start this stack first, because the network is `external` for everyone else:
 
 ```yaml
 services:
