@@ -73,14 +73,14 @@ loki.source.api "loki_push_api" {
 }
 
 // Send logs to Grafana Cloud Loki.
-// Set LOKI_URL in your env file. For Cloud also set LOKI_USERNAME and LOKI_PASSWORD.
+// Set LOKI_URL in your env file. For Cloud also set LOKI_USERNAME and GCLOUD_RW_API_KEY.
 loki.write "default" {
   endpoint {
     url = sys.env("LOKI_URL")
 
     basic_auth {
       username = sys.env("LOKI_USERNAME")
-      password = sys.env("LOKI_PASSWORD")
+      password = sys.env("GCLOUD_RW_API_KEY")
     }
   }
 }
@@ -110,5 +110,5 @@ otelcol.exporter.otlphttp "to_tempo" {
 
 otelcol.auth.basic "tempo_auth" {
 	username = sys.env("TEMPO_USERNAME")
-	password = sys.env("TEMPO_PASSWORD")
+	password = sys.env("GCLOUD_RW_API_KEY")
 }
