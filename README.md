@@ -10,6 +10,7 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 | Loki | grafana/loki:latest | Internal only |
 | Mimir | grafana/mimir:latest | Internal only |
 | Alloy | grafana/alloy:latest | Internal only |
+| PDC agent | grafana/pdc-agent:latest | None (outbound only) |
 | Grafana MCP server | grafana/mcp-grafana:latest | Shared `grafana` network only |
 | Tempo | grafana/tempo:latest | Shared `grafana` network only |
 | Prometheus | prom/prometheus:latest | Internal only |
@@ -55,11 +56,11 @@ cp .env.cloud.example .env.cloud
 docker compose --env-file .env.cloud up -d
 ```
 
-Only cloud mode uses `LOKI_URL`, `LOKI_USERNAME`, and `LOKI_PASSWORD`.
+Only cloud mode uses `LOKI_URL` and `LOKI_USERNAME`. Authentication to Grafana Cloud uses a single access policy token, `GCLOUD_RW_API_KEY`, for all signals (logs, metrics, traces and pipelines pulled from Fleet Management). Give the token the `logs:write`, `metrics:write`, `traces:write` and `profiles:write` scopes.
 
 Local mode in `alloy/config.local.alloy` writes directly to `http://loki:3100/loki/api/v1/push`.
 
-`alloy/alloy-container.yml` passes through the full cloud variable set (`LOKI_*`, `MIMIR_*`, `TEMPO_*`, `PYROSCOPE_*`, `OTLP_*`, `FLEET_MANAGEMENT_*`) so they are available for future Alloy pipeline additions.
+`alloy/alloy-container.yml` passes through the cloud variables (`LOKI_URL`/`LOKI_USERNAME`, `MIMIR_URL`/`MIMIR_USERNAME`, `TEMPO_*`, `PYROSCOPE_*`, `OTLP_*`, `FLEET_MANAGEMENT_*` and `GCLOUD_RW_API_KEY`). `GCLOUD_RW_API_KEY` must be set: pipelines delivered by Fleet Management read it with `sys.env("GCLOUD_RW_API_KEY")`, and without it metrics writes fail with `401 invalid token`.
 
 .env.cloud.example also includes Grafana Cloud endpoints for Mimir (metrics), Tempo (traces), Pyroscope (profiles), OTLP gateway, and optional Fleet Management (for Alloy remote config).
 
@@ -123,6 +124,17 @@ Anyone on the `grafana` network can reach these services without authentication.
 By default it talks to the local Grafana and authenticates with the admin credentials. To use Grafana Cloud instead, set `GRAFANA_MCP_URL` and `GRAFANA_SERVICE_ACCOUNT_TOKEN` in `.env.cloud` (see `.env.cloud.example`). For anything beyond local dev, use a service account token locally too.
 
 It is not published on the host. Other compose projects reach it over the shared network, see [Connecting other projects](#connecting-other-projects).
+
+### Private Data Source Connect (PDC)
+
+`pdc/pdc-container.yml` runs the [PDC agent](https://grafana.com/docs/grafana-cloud/connect-externally-hosted/private-data-source-connect/) so Grafana Cloud can query data sources on this Docker network, for example the local Loki.
+
+1. In Grafana Cloud, go to **Connections > Private data source connections**, create a network and generate a token with the `pdc-signing:write` scope.
+2. Set `GCLOUD_PDC_SIGNING_TOKEN`, `GCLOUD_PDC_CLUSTER` and `GCLOUD_HOSTED_GRAFANA_ID` in `.env.cloud` (see `.env.cloud.example`; the cluster and ID are shown on the network's **Configuration Details** tab).
+3. Start the agent and Loki: `docker compose --env-file .env.cloud up -d pdc-agent loki`.
+4. In Grafana Cloud add a Loki data source with URL `http://loki:3100` and select the PDC network under **Private data source connect**.
+
+The agent only makes outbound connections (SSH to `private-datasource-connect.<cluster>.grafana.net:22`), so no host port is published. Set `PDC_LOG_LEVEL=debug` to see each proxied connection. After restarting the agent, click **Save & test** on the data source again.
 
 ### Loki Data Source Provisioning
 
