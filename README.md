@@ -131,7 +131,7 @@ It is not published on the host. Other compose projects reach it over the shared
 
 1. In Grafana Cloud, go to **Connections > Private data source connections**, create a network and generate a token with the `pdc-signing:write` scope.
 2. Set `GCLOUD_PDC_SIGNING_TOKEN`, `GCLOUD_PDC_CLUSTER` and `GCLOUD_HOSTED_GRAFANA_ID` in `.env.cloud` (see `.env.cloud.example`; the cluster and ID are shown on the network's **Configuration Details** tab).
-3. Start the agent and Loki: `docker compose --env-file .env.cloud up -d pdc-agent loki`.
+3. Start the agent and Loki: `docker compose --env-file .env.cloud up -d pdc-agent loki`. The agent is behind the `pdc` Compose profile, so it only starts when you name it and the rest of the stack runs without PDC credentials.
 4. In Grafana Cloud add a Loki data source with URL `http://loki:3100` and select the PDC network under **Private data source connect**.
 
 The agent only makes outbound connections (SSH to `private-datasource-connect.<cluster>.grafana.net:22`), so no host port is published. Set `PDC_LOG_LEVEL=debug` to see each proxied connection. After restarting the agent, click **Save & test** on the data source again.
