@@ -3,6 +3,8 @@ services:
     image: grafana/pdc-agent:latest
     container_name: pdc-agent
     command:
+      - -log.level
+      - ${PDC_LOG_LEVEL:-info}
       - -token
       - ${GCLOUD_PDC_SIGNING_TOKEN:?set GCLOUD_PDC_SIGNING_TOKEN in .env.cloud}
       - -cluster
