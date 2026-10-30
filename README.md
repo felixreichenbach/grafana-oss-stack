@@ -125,6 +125,22 @@ By default it talks to the local Grafana and authenticates with the admin creden
 
 It is not published on the host. Other compose projects reach it over the shared network, see [Connecting other projects](#connecting-other-projects).
 
+### S3 Log Archive
+
+In cloud mode (`alloy/config.cloud.alloy`) every log line received by Alloy (syslog and the Loki push API on port 9999) is written to an S3 bucket in addition to Grafana Cloud Loki, using `otelcol.exporter.awss3`. Objects are gzip-compressed OTLP JSON, partitioned per minute in UTC, with the stream labels kept as attributes on each log record:
+
+```
+<S3_PREFIX>/year=YYYY/month=MM/day=DD/hour=HH/minute=MM/logs_<uuid>.json.gz
+```
+
+Lines are batched (30s) into fewer objects.
+
+1. Create a bucket and an IAM user or role with `s3:PutObject` on `arn:aws:s3:::<S3_BUCKET>/<S3_PREFIX>/*`.
+2. Set `S3_BUCKET`, `S3_REGION`, `S3_PREFIX` and the `AWS_*` credentials in `.env.cloud` (see `.env.cloud.example`).
+3. Start Alloy with `docker compose --env-file .env.cloud up -d alloy`.
+
+`S3_BUCKET` and `S3_REGION` must be set when using `config.cloud.alloy`; Alloy rejects the config otherwise. Local mode (`config.local.alloy`) does not write to S3.
+
 ### Private Data Source Connect (PDC)
 
 `pdc/pdc-container.yml` runs the [PDC agent](https://grafana.com/docs/grafana-cloud/connect-externally-hosted/private-data-source-connect/) so Grafana Cloud can query data sources on this Docker network, for example the local Loki.
