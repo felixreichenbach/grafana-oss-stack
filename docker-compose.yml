@@ -1,6 +1,7 @@
 include:
   - ./alloy/alloy-container.yml
   - ./pdc/pdc-container.yml
+  - ./loggen/loggen-container.yml
   - ./tempo/tempo-container.yml
   - ./mimir/mimir-container.yml
   - ./prometheus/prometheus-container.yml

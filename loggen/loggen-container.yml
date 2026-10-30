@@ -1,0 +1,15 @@
+services:
+  loggen:
+    image: python:3-alpine
+    container_name: loggen
+    command: python -u /app/loggen.py
+    environment:
+      PUSH_URL: http://alloy:9999/loki/api/v1/push
+      SERVICE_NAME: archive
+      INTERVAL_SECONDS: "2"
+      BATCH_SIZE: "5"
+    volumes:
+      - ./loggen.py:/app/loggen.py:ro
+    depends_on:
+      - alloy
+    restart: unless-stopped
