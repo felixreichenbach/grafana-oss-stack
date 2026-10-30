@@ -21,5 +21,5 @@ remotecfg {
 		"metrics_ingest" = "true",
 		"otlp_ingest"    = "true",
 	}
-	poll_frequency = "5m"
+	poll_frequency = "1m"
 }
