@@ -1,6 +1,6 @@
 # grafana-oss-stack
 
-A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additional features such as syslog etc.
+A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additional features such as SNMP trap parsing and Grafana Cloud Fleet Management.
 
 ## Services
 
@@ -14,7 +14,6 @@ A basic Docker Compose setup running Grafana OSS, Loki, and Alloy with additiona
 | Grafana MCP server | grafana/mcp-grafana:latest | Shared `grafana` network only |
 | Tempo | grafana/tempo:latest | Shared `grafana` network only |
 | Prometheus | prom/prometheus:latest | Internal only |
-| Rsyslog | rsyslog/rsyslog:latest | 514/udp |
 | Telegraf | telegraf:latest | 162/udp |
 | Static website (optional) | nginx:alpine | 8088 |
 
@@ -40,7 +39,7 @@ Use env files to select the runtime endpoints and credentials Alloy receives:
 Alloy uses `ALLOY_CONFIG_FILE` from the selected env file to choose the mounted config:
 
 - `alloy/config.local.alloy` (local mode, no Fleet enrollment)
-- `alloy/config.cloud.alloy` (cloud mode, includes Fleet `remotecfg`)
+- `alloy/config.cloud.alloy` (cloud mode, bootstrap only: enrolls in Fleet Management with `remotecfg`; log and trace ingest are Fleet pipelines, see [Fleet Management pipelines](#fleet-management-pipelines))
 
 - Local Loki (default):
 
@@ -125,21 +124,58 @@ By default it talks to the local Grafana and authenticates with the admin creden
 
 It is not published on the host. Other compose projects reach it over the shared network, see [Connecting other projects](#connecting-other-projects).
 
+### Fleet Management pipelines
+
+In cloud mode the local Alloy config (`alloy/config.cloud.alloy`) only enrolls the collector in Fleet Management. Everything else is delivered as Fleet pipelines that live in this repo under `fleet/pipelines/`:
+
+```
+fleet/
+  deploy.sh                    # validate + create/update the pipelines in Fleet
+  pipelines/
+    log-ingest.alloy           # Loki push API (9999) -> Grafana Cloud Loki and S3
+    metrics-ingest.alloy       # Prometheus remote-write (9009) -> Grafana Cloud Mimir
+    otlp-ingest.alloy          # OTLP gRPC/HTTP (4317/4318): logs, metrics, traces -> Grafana Cloud OTLP gateway
+    *.json                     # per pipeline: spec name, enabled, matchers
+```
+
+The collector therefore exposes the default ingest endpoints for all three signals:
+
+| Signal | Endpoint | Forwarded to |
+|--------|----------|--------------|
+| Logs | Loki push API: `POST http://<collector>:9999/loki/api/v1/push` | Grafana Cloud Loki (+ S3) |
+| Metrics | Prometheus remote-write: `http://<collector>:9009/api/v1/metrics/write` | Grafana Cloud Mimir |
+| Logs, metrics, traces | OTLP gRPC `:4317` / HTTP `:4318` | Grafana Cloud OTLP gateway |
+
+Each pipeline is a plain `.alloy` file plus a small JSON spec (`name`, `enabled`, `matchers`). Collectors pick up a pipeline when their `remotecfg` attributes match its matchers (`log_ingest`, `metrics_ingest` and `otlp_ingest`, all set to `"true"` in `config.cloud.alloy`).
+
+```sh
+fleet/deploy.sh            # dry run: validates every pipeline with `alloy validate` and shows create/update
+fleet/deploy.sh --apply    # creates or updates the pipelines via gcx (re-runnable, matched by spec name)
+```
+
+`deploy.sh` needs Docker and `gcx` logged in to the target stack. Collectors fetch changes on their next poll (`poll_frequency`, 5m).
+
+Rules to keep in mind:
+
+- Credentials and endpoints are never stored in pipelines. They are read with `sys.env(...)` from the collector's environment, so `.env.cloud` still needs `LOKI_*`, `MIMIR_*`, `OTLP_*`, `GCLOUD_RW_API_KEY`, `S3_*` and the `AWS_*` variables.
+- Pipelines are isolated modules and cannot share components. Each listener port (9999, 9009, 4317, 4318) must be used by exactly one pipeline, never also by the local config.
+- Rollout order when migrating an existing collector: run `fleet/deploy.sh --apply` first, then recreate the Alloy container with the new bootstrap config. Until the old listeners are gone, the pipeline's listeners cannot bind the same ports.
+
 ### S3 Log Archive
 
-In cloud mode (`alloy/config.cloud.alloy`) every log line received by Alloy (syslog and the Loki push API on port 9999) is written to an S3 bucket in addition to Grafana Cloud Loki, using `otelcol.exporter.awss3`. Objects are gzip-compressed OTLP JSON, partitioned per minute in UTC, with the stream labels kept as attributes on each log record:
+The `log-ingest` pipeline (`fleet/pipelines/log-ingest.alloy`) writes every log line received by Alloy on the Loki push API (port 9999) to an S3 bucket in addition to Grafana Cloud Loki, using `otelcol.exporter.awss3`. Objects are gzip-compressed OTLP JSON, partitioned per minute in UTC, with the stream labels kept as attributes on each log record:
 
 ```
 <S3_PREFIX>/year=YYYY/month=MM/day=DD/hour=HH/minute=MM/logs_<uuid>.json.gz
 ```
 
-Lines are batched (30s) into fewer objects.
+Lines are batched (30s) into fewer objects. Only logs received on the Loki push API are written to S3; OTLP logs go to Grafana Cloud only.
 
 1. Create a bucket and an IAM user or role with `s3:PutObject` on `arn:aws:s3:::<S3_BUCKET>/<S3_PREFIX>/*`.
 2. Set `S3_BUCKET`, `S3_REGION`, `S3_PREFIX` and the `AWS_*` credentials in `.env.cloud` (see `.env.cloud.example`).
-3. Start Alloy with `docker compose --env-file .env.cloud up -d alloy`.
+3. Deploy the pipeline (`fleet/deploy.sh --apply`) and recreate Alloy: `docker compose --env-file .env.cloud up -d --force-recreate alloy`.
 
-`S3_BUCKET` and `S3_REGION` must be set when using `config.cloud.alloy`; Alloy rejects the config otherwise. Local mode (`config.local.alloy`) does not write to S3.
+`S3_BUCKET` and `S3_REGION` must be set on the collector; the pipeline fails to start otherwise. Local mode (`config.local.alloy`) does not write to S3.
 
 ### Private Data Source Connect (PDC)
 

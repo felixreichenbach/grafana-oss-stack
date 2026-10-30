@@ -1,0 +1,64 @@
+// Fleet pipeline: log ingest.
+// Receives logs on the Loki push API, sends them to Grafana Cloud Loki and to S3.
+// Credentials and endpoints come from the collector's environment (see .env.cloud.example):
+// LOKI_URL, LOKI_USERNAME, GCLOUD_RW_API_KEY, S3_BUCKET, S3_REGION, S3_PREFIX and the AWS_* variables.
+
+// Loki Push API receiver endpoint: POST http://<collector>:9999/loki/api/v1/push
+loki.source.api "loki_push_api" {
+  http {
+    listen_address = "0.0.0.0"
+    listen_port    = 9999
+  }
+
+  use_incoming_timestamp = true
+  labels = {
+    job = "alloy-loki-api",
+  }
+
+  forward_to = [loki.write.cloud.receiver, otelcol.receiver.loki.s3.receiver]
+}
+
+// Send logs to Grafana Cloud Loki.
+loki.write "cloud" {
+  endpoint {
+    url = sys.env("LOKI_URL")
+
+    basic_auth {
+      username = sys.env("LOKI_USERNAME")
+      password = sys.env("GCLOUD_RW_API_KEY")
+    }
+  }
+}
+
+// Also write every log line to S3.
+// Objects are gzip-compressed OTLP JSON under <S3_PREFIX>/year=YYYY/month=MM/day=DD/hour=HH/minute=MM/ (UTC),
+// named logs_<uuid>.json.gz. Stream labels are kept as attributes on each log record.
+// AWS credentials are picked up from the standard AWS_* environment variables by the AWS SDK.
+otelcol.receiver.loki "s3" {
+  output {
+    logs = [otelcol.processor.batch.s3.input]
+  }
+}
+
+// Group log lines into fewer, larger S3 objects instead of one object per line.
+otelcol.processor.batch "s3" {
+  timeout = "30s"
+
+  output {
+    logs = [otelcol.exporter.awss3.logs.input]
+  }
+}
+
+otelcol.exporter.awss3 "logs" {
+  s3_uploader {
+    region                = sys.env("S3_REGION")
+    s3_bucket             = sys.env("S3_BUCKET")
+    s3_prefix             = sys.env("S3_PREFIX")
+    s3_partition_timezone = "UTC"
+    compression           = "gzip"
+  }
+
+  marshaler {
+    type = "otlp_json"
+  }
+}

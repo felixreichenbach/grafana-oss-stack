@@ -1,0 +1,23 @@
+// Fleet pipeline: Prometheus remote-write ingest (metrics).
+// Receives Prometheus remote-write on http://<collector>:9009/api/v1/metrics/write and forwards the samples
+// to Grafana Cloud Mimir. Endpoint and credentials come from the collector's environment:
+// MIMIR_URL, MIMIR_USERNAME, GCLOUD_RW_API_KEY.
+prometheus.receive_http "remote_write" {
+  http {
+    listen_address = "0.0.0.0"
+    listen_port    = 9009
+  }
+
+  forward_to = [prometheus.remote_write.cloud.receiver]
+}
+
+prometheus.remote_write "cloud" {
+  endpoint {
+    url = sys.env("MIMIR_URL")
+
+    basic_auth {
+      username = sys.env("MIMIR_USERNAME")
+      password = sys.env("GCLOUD_RW_API_KEY")
+    }
+  }
+}
