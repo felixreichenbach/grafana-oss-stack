@@ -1,5 +1,0 @@
-{
-  "name": "trace_ingest",
-  "enabled": true,
-  "matchers": ["trace_ingest=\"true\""]
-}

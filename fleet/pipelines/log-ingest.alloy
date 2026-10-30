@@ -1,49 +1,7 @@
 // Fleet pipeline: log ingest.
-// Receives logs (syslog + Loki push API), sends them to Grafana Cloud Loki and to S3.
+// Receives logs on the Loki push API, sends them to Grafana Cloud Loki and to S3.
 // Credentials and endpoints come from the collector's environment (see .env.cloud.example):
 // LOKI_URL, LOKI_USERNAME, GCLOUD_RW_API_KEY, S3_BUCKET, S3_REGION, S3_PREFIX and the AWS_* variables.
-
-// Listen for syslog messages on TCP port 1514 (octet-counted)
-loki.source.syslog "meraki" {
-  listener {
-    address  = "0.0.0.0:1514"
-    protocol = "tcp"
-  }
-  relabel_rules = loki.relabel.syslog_fields.rules
-  forward_to    = [loki.write.cloud.receiver, otelcol.receiver.loki.s3.receiver]
-}
-
-// Direct UDP syslog intake on port 1514 (no relay required)
-loki.source.syslog "meraki_udp" {
-  listener {
-    address  = "0.0.0.0:1514"
-    protocol = "udp"
-  }
-  relabel_rules = loki.relabel.syslog_fields.rules
-  forward_to    = [loki.write.cloud.receiver, otelcol.receiver.loki.s3.receiver]
-}
-
-loki.relabel "syslog_fields" {
-  rule {
-    source_labels = ["__syslog_message_severity"]
-    target_label  = "level"
-  }
-  rule {
-    replacement  = "meraki-syslog"
-    target_label = "job"
-  }
-  rule {
-    source_labels = ["__syslog_message_hostname"]
-    regex         = "^([^_]+)_.*$"
-    replacement   = "$1"
-    target_label  = "instance"
-  }
-  rule {
-    source_labels = ["__syslog_message_app_name"]
-    target_label  = "syslog_app_name"
-  }
-  forward_to = []
-}
 
 // Loki Push API receiver endpoint: POST http://<collector>:9999/loki/api/v1/push
 loki.source.api "loki_push_api" {

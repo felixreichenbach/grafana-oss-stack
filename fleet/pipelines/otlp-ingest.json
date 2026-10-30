@@ -1,0 +1,5 @@
+{
+  "name": "otlp_ingest",
+  "enabled": true,
+  "matchers": ["otlp_ingest=\"true\""]
+}

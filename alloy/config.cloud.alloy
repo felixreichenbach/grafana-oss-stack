@@ -17,8 +17,9 @@ remotecfg {
 	attributes = {
 		"environment" = "docker",
 		"service"     = "alloy",
-		"log_ingest"  = "true",
-		"trace_ingest" = "true",
+		"log_ingest"     = "true",
+		"metrics_ingest" = "true",
+		"otlp_ingest"    = "true",
 	}
 	poll_frequency = "5m"
 }

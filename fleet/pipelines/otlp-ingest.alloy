@@ -1,0 +1,39 @@
+// Fleet pipeline: OTLP ingest (logs, metrics and traces).
+// Receives OTLP on the standard ports (gRPC 4317, HTTP 4318) and forwards all three signals to the
+// Grafana Cloud OTLP gateway. Endpoint and credentials come from the collector's environment:
+// OTLP_ENDPOINT, OTLP_USERNAME, GCLOUD_RW_API_KEY.
+otelcol.receiver.otlp "otlp_ingest" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    logs    = [otelcol.processor.batch.otlp.input]
+    metrics = [otelcol.processor.batch.otlp.input]
+    traces  = [otelcol.processor.batch.otlp.input]
+  }
+}
+
+otelcol.processor.batch "otlp" {
+  output {
+    logs    = [otelcol.exporter.otlphttp.gateway.input]
+    metrics = [otelcol.exporter.otlphttp.gateway.input]
+    traces  = [otelcol.exporter.otlphttp.gateway.input]
+  }
+}
+
+otelcol.exporter.otlphttp "gateway" {
+  client {
+    endpoint = sys.env("OTLP_ENDPOINT")
+    auth     = otelcol.auth.basic.gateway.handler
+  }
+}
+
+otelcol.auth.basic "gateway" {
+  username = sys.env("OTLP_USERNAME")
+  password = sys.env("GCLOUD_RW_API_KEY")
+}

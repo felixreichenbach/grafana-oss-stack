@@ -18,7 +18,8 @@ ALLOY_IMAGE="${ALLOY_IMAGE:-grafana/alloy:latest}"
 # Dummy values so `alloy validate` can evaluate sys.env(...) without real credentials.
 DUMMY_ENV=(
   -e LOKI_URL=http://localhost -e LOKI_USERNAME=1 -e GCLOUD_RW_API_KEY=x
-  -e TEMPO_URL=http://localhost -e TEMPO_USERNAME=1
+  -e MIMIR_URL=http://localhost -e MIMIR_USERNAME=1
+  -e OTLP_ENDPOINT=http://localhost -e OTLP_USERNAME=1
   -e S3_BUCKET=bucket -e S3_REGION=eu-central-1 -e S3_PREFIX=logs
 )
 
