@@ -171,11 +171,28 @@ The `log-ingest` pipeline (`fleet/pipelines/log-ingest.alloy`) writes every log 
 
 Lines are batched (30s) into fewer objects. Only logs received on the Loki push API are written to S3; OTLP logs go to Grafana Cloud only.
 
-1. Create a bucket and an IAM user or role with `s3:PutObject` on `arn:aws:s3:::<S3_BUCKET>/<S3_PREFIX>/*`.
+1. Create the bucket and an IAM user with `s3:PutObject` on `arn:aws:s3:::<S3_BUCKET>/<S3_PREFIX>/*`, either with `aws/deploy.sh` (see [AWS resources](#aws-resources)) or by hand.
 2. Set `S3_BUCKET`, `S3_REGION`, `S3_PREFIX` and the `AWS_*` credentials in `.env.cloud` (see `.env.cloud.example`).
 3. Deploy the pipeline (`fleet/deploy.sh --apply`) and recreate Alloy: `docker compose --env-file .env.cloud up -d --force-recreate alloy`.
 
 `S3_BUCKET` and `S3_REGION` must be set on the collector; the pipeline fails to start otherwise. Local mode (`config.local.alloy`) does not write to S3.
+
+### AWS resources
+
+The AWS side of the S3 log archive is defined as code in `aws/s3-log-archive.yaml` (CloudFormation) and deployed with `aws/deploy.sh`:
+
+- a private bucket (public access blocked, SSE-S3 encryption, optional expiry after `RETENTION_DAYS`) that is **retained** if the stack is deleted,
+- an IAM user that can only `s3:PutObject` under `<S3_PREFIX>/`,
+- an access key for that user, stored in Secrets Manager (never in a stack output).
+
+```sh
+aws login --profile default        # or any profile; set AWS_PROFILE
+aws/deploy.sh                      # dry run: lints the template and shows account, region and parameters
+aws/deploy.sh --apply              # creates or updates the stack
+aws/deploy.sh --write-env          # copies AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY from Secrets Manager into .env.cloud
+```
+
+Bucket name, prefix and region are read from `.env.cloud` (`S3_BUCKET`, `S3_PREFIX`, `S3_REGION`), so the stack and Alloy always use the same values. The stack name defaults to `alloy-s3-log-archive` (override with `STACK_NAME`). The script needs the `aws` CLI, `python3` and `uv` (for `cfn-lint`). If the bucket or IAM user already exists, pick a different `S3_BUCKET` or import the resources into the stack first, otherwise the deploy fails on the name conflict.
 
 ### Private Data Source Connect (PDC)
 

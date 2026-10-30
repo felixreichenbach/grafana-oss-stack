@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  S3 log archive for Alloy: a private, encrypted bucket plus a least-privilege IAM user
+  (s3:PutObject on <Prefix>/* only) whose access key is stored in Secrets Manager.
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: Globally unique bucket name (same value as S3_BUCKET in .env.cloud).
+    AllowedPattern: "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"
+  Prefix:
+    Type: String
+    Default: logs
+    Description: Key prefix Alloy writes under (same value as S3_PREFIX in .env.cloud).
+    AllowedPattern: "^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*$"
+  RetentionDays:
+    Type: Number
+    Default: 0
+    MinValue: 0
+    Description: Delete objects after this many days. 0 keeps them forever.
+  WriterUserName:
+    Type: String
+    Default: alloy-s3-log-writer
+    Description: Name of the IAM user Alloy uses.
+
+Conditions:
+  HasRetention: !Not [!Equals [!Ref RetentionDays, 0]]
+
+Resources:
+  LogBucket:
+    Type: AWS::S3::Bucket
+    # Never delete the logs when the stack is deleted or the bucket is replaced.
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Ref BucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration: !If
+        - HasRetention
+        - Rules:
+            - Id: expire-archived-logs
+              Status: Enabled
+              Prefix: !Sub "${Prefix}/"
+              ExpirationInDays: !Ref RetentionDays
+        - !Ref AWS::NoValue
+
+  WriterUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Ref WriterUserName
+      Policies:
+        - PolicyName: put-log-archive-objects
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub "${LogBucket.Arn}/${Prefix}/*"
+
+  WriterAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref WriterUser
+
+  # The secret key is only ever stored here, never in a stack output.
+  WriterAccessKeySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${AWS::StackName}/access-key"
+      Description: Access key Alloy uses to write to the S3 log archive.
+      SecretString: !Sub
+        - '{"AWS_ACCESS_KEY_ID":"${KeyId}","AWS_SECRET_ACCESS_KEY":"${KeySecret}"}'
+        - KeyId: !Ref WriterAccessKey
+          KeySecret: !GetAtt WriterAccessKey.SecretAccessKey
+
+Outputs:
+  BucketName:
+    Value: !Ref LogBucket
+  Region:
+    Value: !Ref AWS::Region
+  Prefix:
+    Value: !Ref Prefix
+  AccessKeySecretArn:
+    Description: Secrets Manager secret holding AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
+    Value: !Ref WriterAccessKeySecret
