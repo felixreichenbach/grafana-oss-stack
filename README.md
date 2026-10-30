@@ -153,7 +153,7 @@ fleet/deploy.sh            # dry run: validates every pipeline with `alloy valid
 fleet/deploy.sh --apply    # creates or updates the pipelines via gcx (re-runnable, matched by spec name)
 ```
 
-`deploy.sh` needs Docker and `gcx` logged in to the target stack. Collectors fetch changes on their next poll (`poll_frequency`, 5m).
+`deploy.sh` needs Docker and `gcx` logged in to the target stack. Collectors fetch changes on their next poll (`poll_frequency`, 1m).
 
 Rules to keep in mind:
 
