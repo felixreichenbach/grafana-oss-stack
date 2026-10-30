@@ -1,0 +1,5 @@
+{
+  "name": "log_ingest",
+  "enabled": true,
+  "matchers": ["log_ingest=\"true\""]
+}

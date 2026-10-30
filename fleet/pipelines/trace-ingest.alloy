@@ -1,0 +1,28 @@
+// Fleet pipeline: trace ingest.
+// Receives OTLP traces and forwards them to Grafana Cloud Tempo over OTLP/HTTP.
+// Endpoint and credentials come from the collector's environment: TEMPO_URL, TEMPO_USERNAME, GCLOUD_RW_API_KEY.
+otelcol.receiver.otlp "tempo_ingest" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    traces = [otelcol.exporter.otlphttp.to_tempo.input]
+  }
+}
+
+otelcol.exporter.otlphttp "to_tempo" {
+  client {
+    endpoint = sys.env("TEMPO_URL")
+    auth     = otelcol.auth.basic.tempo_auth.handler
+  }
+}
+
+otelcol.auth.basic "tempo_auth" {
+  username = sys.env("TEMPO_USERNAME")
+  password = sys.env("GCLOUD_RW_API_KEY")
+}
