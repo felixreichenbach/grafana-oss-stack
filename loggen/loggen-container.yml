@@ -8,6 +8,8 @@ services:
       LOKI_PUSH_URL: http://alloy:9999/loki/api/v1/push
       OTLP_LOGS_URL: http://alloy:4318/v1/logs
       TARGETS: loki,otlp
+      # Line format for the Loki path: logfmt (default), json (OTel data model) or plain.
+      LOKI_LINE_FORMAT: logfmt
       SERVICE_NAME: archive
       SERVICE_VERSION: 1.0.0
       DEPLOYMENT_ENVIRONMENT: docker
