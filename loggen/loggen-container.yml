@@ -4,8 +4,9 @@ services:
     container_name: loggen
     command: python -u /app/loggen.py
     environment:
-      # Loki push API (loki.source.api) and OTLP/HTTP (otelcol.receiver.otlp) endpoints on Alloy.
-      LOKI_PUSH_URL: http://alloy:9999/loki/api/v1/push
+      # Loki push API and OTLP/HTTP endpoints on Alloy. Loki goes to port 3100, the Fleet-managed Adaptive Logs
+      # pipeline (adaptive_logs_*_loki_push), which applies the drop rules before writing to Grafana Cloud.
+      LOKI_PUSH_URL: http://alloy:3100/loki/api/v1/push
       OTLP_LOGS_URL: http://alloy:4318/v1/logs
       TARGETS: loki,otlp
       # Line format for the Loki path: logfmt (default), json (OTel data model) or plain.

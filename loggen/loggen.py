@@ -31,7 +31,7 @@ import urllib.request
 import uuid
 from datetime import datetime, timezone
 
-LOKI_PUSH_URL = os.environ.get("LOKI_PUSH_URL", os.environ.get("PUSH_URL", "http://alloy:9999/loki/api/v1/push"))
+LOKI_PUSH_URL = os.environ.get("LOKI_PUSH_URL", os.environ.get("PUSH_URL", "http://alloy:3100/loki/api/v1/push"))
 OTLP_LOGS_URL = os.environ.get("OTLP_LOGS_URL", "http://alloy:4318/v1/logs")
 TARGETS = [t.strip() for t in os.environ.get("TARGETS", "loki,otlp").split(",") if t.strip()]
 LOKI_LINE_FORMAT = os.environ.get("LOKI_LINE_FORMAT", "logfmt").lower()
